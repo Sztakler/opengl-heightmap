@@ -7,16 +7,17 @@
 #include <dirent.h>
 #include <unistd.h>
 
-char* returnnull()
+typedef struct coordinate_t
 {
-    return nullptr;
-}
+    double latitude;
+    double longitude;
+} coordinate_t;
 
 /* Populates 'heights' vector with heights (in meters above sea level) from .hgt file 'filename'. 
  * 'filename' parameter is either relative or absolute path to .hgt file.
  */
 // void load_heightmap(std::vector<std::vector<uint16_t>> &heights, char* filename)
-void load_heightmap(std::vector<uint16_t> &heights, char* filename)
+void load_heightmap(std::vector<uint16_t> &heights, std::vector<coordinate_t> &coordinates, char* filename)
 {
     std::string line;
     std::string word;
@@ -49,26 +50,28 @@ void load_heightmap(std::vector<uint16_t> &heights, char* filename)
     
     in_file_stream.close();
 
-    printf("dupa\n");
     char filename_copy[50];
     strcpy(filename_copy, filename);
     const char delim[2] = "/";
-    // std::string fname(filename);
-    // std::cout << filename_copy << "\n";
 
-    // char* token;
+    char* token;
+    std::vector<char*> tokens;
+    token = strtok(filename_copy, delim);
 
-    // token = strtok(filename_copy, delim);
-    // std::cout << token << " ";
-    
-    // while (token != NULL)
-    // {
-    //     token = strtok(NULL, delim);
-    //     std::cout << token << " ";
-    // }
+    while (token != NULL)
+    {
+        tokens.push_back(token);
+        token = strtok(NULL, delim);
+    }
 
-    // std::cout.clear();
-    // std::cout << "dupa2\n";
+    std::string fname(tokens.back());
+
+    double latitude = (double)atoi(fname.substr(1,2).c_str()) + 1; // add 1, because latitude from filename is actually lower left corner of square
+    double origin_longitude = (double)atoi(fname.substr(4, 6).c_str());
+
+    double longitude = origin_longitude;
+
+    std::cout << fname << " N" << latitude << " E" << longitude << "\n";
 
     uint rows = 0;
     uint cols = 0;
@@ -83,6 +86,8 @@ void load_heightmap(std::vector<uint16_t> &heights, char* filename)
         rows = 3601;
         cols = 3601 * 2;
     }
+
+    double delta = 1.0 / rows;
     
     for (uint i = 0; i < rows; i++)
     {
@@ -95,7 +100,15 @@ void load_heightmap(std::vector<uint16_t> &heights, char* filename)
             uint16_t height = (byte_high << 8) + byte_low;
 
             heights.push_back(height);
+
+            coordinate_t coord = {.latitude = latitude, .longitude = longitude};
+            coordinates.push_back(coord);
+            
+            longitude += delta;
         }
+
+        latitude -= delta;
+        longitude = origin_longitude;
     }
 
     // for (int i = 0; i < file_length; i += 2)
@@ -109,13 +122,13 @@ void load_heightmap(std::vector<uint16_t> &heights, char* filename)
     //     //     printf("\033[92m%d %d %d %d %d\033[0m\n", height, byte_high, byte_low, bytes[i], bytes[i+1]);
     //     // std::cout << std::hex << byte_high << " " << byte_low << "\n";
 
-    //     // float delta = 1.0 / 1201;
+    //     // double delta = 1.0 / 1201;
 
     //     // uint64_t row = i / 2 / 1201; 
     //     // uint64_t col = (i / 2) % 1201;
 
-    //     // float Nmin = 50 - row * delta;
-    //     // float Emin = 18 + col * delta;
+    //     // double Nmin = 50 - row * delta;
+    //     // double Emin = 18 + col * delta;
 
     //     // std::cout << '[' << i << ']';
     //     // std::cout << row << ' ' << col << " N " << Nmin << " E " << Emin << "[" << height << " m n.p.m]" << '\n';
@@ -207,12 +220,12 @@ int main()
 
     // std::vector<std::vector<uint16_t>> heights;
     std::vector<uint16_t> heights;
-    std::vector<float> coordinates;
+    std::vector<coordinate_t> coordinates;
 
     char filename[] = "maps/test/N49E020.hgt";
 
 
-    load_heightmap(heights, filename);
+    load_heightmap(heights, coordinates, filename);
 
     // int n_rows = heights.size();
     // int n_cols = heights[0].size();
@@ -228,11 +241,12 @@ int main()
     //     }
     // }
 
-    for (uint i = 0; i < heights.size(); i++)
-    {
-        if (heights[i] > 8000)
-            std::cout << "[" << i << "] " << heights[i] << "\n";
-    }
+    // for (uint i = 0; i < heights.size(); i++)
+    // {
+        // if (heights[i] > 8000)
+            // std::cout << "[" << i << "] " << heights[i] <<  "\n";
+        // printf("[i=%d] [h]%d N%f E%f\n", i, heights[i], coordinates[i].latitude, coordinates[i].longitude);
+    // }
 
     return 0;
 }
