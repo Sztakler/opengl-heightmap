@@ -1,22 +1,22 @@
 #include "camera.h"
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) :
-    front(glm::vec3(0.0f, 0.0f, -1.0f)),
+    front(glm::vec3(-0.5f, -0.5f, -0.5f)),
     movement_speed(SPEED),
     mouse_sensitivity(SENSITIVITY),
     zoom(ZOOM)
 {
     this->position = position;
     this->world_up = up;
-    this->yaw = yaw;
-    this->pitch = pitch;
-    
+    this->yaw = -130.0;
+    this->pitch = -30.0;
+
     updateCameraVectors();
 }
 
 
 Camera::Camera(float pos_x, float pos_y, float pos_z, float up_x, float up_y, float up_z, float yaw, float pitch) :
-    front(glm::vec3(0.0f, 0.0f, -1.0f)),
+    front(glm::vec3(-0.5f, -0.5f, -0.5f)),
     movement_speed(SPEED),
     mouse_sensitivity(SENSITIVITY),
     zoom(ZOOM)
@@ -107,7 +107,6 @@ void Camera::updateCameraVectors()
     front_vector.y = sin(glm::radians(pitch));
     front_vector.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     front = glm::normalize(front_vector);
-
 
 
     // also re-calculate the Right and Up vector

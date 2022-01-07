@@ -62,6 +62,7 @@ void load_heightmap(std::vector<uint16_t> &heights, std::vector<coordinate_t> &c
     {
         tokens.push_back(token);
         token = strtok(NULL, delim);
+        std::cout << token << " ";
     }
 
     std::string fname(tokens.back());
@@ -241,12 +242,12 @@ int main()
     //     }
     // }
 
-    // for (uint i = 0; i < heights.size(); i++)
-    // {
+    for (uint i = 0; i < heights.size(); i++)
+    {
         // if (heights[i] > 8000)
             // std::cout << "[" << i << "] " << heights[i] <<  "\n";
-        // printf("[i=%d] [h]%d N%f E%f\n", i, heights[i], coordinates[i].latitude, coordinates[i].longitude);
-    // }
+        printf("[i=%d] [h]%d N%f E%f\n", i, heights[i], coordinates[i].latitude, coordinates[i].longitude);
+    }
 
     return 0;
 }

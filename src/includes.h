@@ -33,6 +33,13 @@ typedef struct triangle
     point p3;
 } triangle;
 
+/* Structure for storing geographical coordinates. */
+typedef struct coordinate_t
+{
+    double latitude;
+    double longitude;
+} coordinate_t;
+
 typedef struct vec3d
 {
     float x;

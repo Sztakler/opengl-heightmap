@@ -9,7 +9,7 @@
 #include "vbo.h"
 #include "ebo.h"
 #include "camera.h"
-#include "box.h"
+#include "heightmap.h"
 
 #include <GLFW/glfw3.h>
 
@@ -174,8 +174,8 @@ int main(int argc, char *argv[])
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);		   // To make MacOS happy; should not be needed
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGl
 
-	// Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
-	GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "framework", NULL, NULL);
+	// Create a GLFWwindow object of 800 by 800 pixels, naming it "heightmap"
+	GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Heightmap-OpenGL", NULL, NULL);
 	if (window == NULL)
 	{
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
@@ -210,6 +210,8 @@ int main(int argc, char *argv[])
 	// 				Material{glm::vec3(1.0, 0.0, 0.1333), glm::vec3(1.0, 0.0, 0.1333),
 	// 						 glm::vec3(0.5, 0.5, 0.5), 36.0f});
 
+	Heightmap heightmap("data/suzanne.obj", "shaders/default.vert", "shaders/default.frag");
+
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 view = glm::mat4(1.0f);
 	glm::mat4 projection = glm::mat4(1.0f);
@@ -220,7 +222,7 @@ int main(int argc, char *argv[])
 	// float deltaTime = 0.0f;	// Time between current frame and last frame
 	float lastFrame = 0.0f; // Time of last frame
 
-	player_camera.front = glm::vec3(1.0, 0.0, 1.0);
+	player_camera.front = glm::vec3(-0.5, -0.5, -0.5);
 
 
 	unsigned int counter = 0;
@@ -238,7 +240,7 @@ int main(int argc, char *argv[])
 		{
 			std::string FPS = std::to_string((1.0 / delta_time) * counter);
 			std::string ms = std::to_string((delta_time / counter) * 1000);
-			std::string newTitle = "Aquarium - " + FPS + "FPS / " + ms + "ms";
+			std::string newTitle = "Heightmap-OpenGL - " + FPS + "FPS / " + ms + "ms";
 			glfwSetWindowTitle(window, newTitle.c_str());
 			counter = 0;
 			lastFrame = currentFrame;
@@ -249,11 +251,15 @@ int main(int argc, char *argv[])
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.07f, 0.07f, 0.07f, 1.0f);
 
-		view = current_camera->getViewMatrix();
-		projection = glm::perspective(glm::radians(current_camera->zoom), (float)(SCR_WIDTH) / (float)SCR_HEIGHT, 0.01f, 100.0f);
+		view = player_camera.getViewMatrix();
+		projection = glm::perspective(glm::radians(player_camera.zoom), (float)(SCR_WIDTH) / (float)SCR_HEIGHT, 0.01f, 100.0f);
 
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
+		heightmap.shader.Activate();
+		heightmap.Bind();
+		heightmap.Draw(&model, &view, &projection, TRIANGLES, false, player_camera.position);
+		heightmap.Unbind();
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
