@@ -43,7 +43,7 @@ float yaw = -90.0f;
 
 DRAWING_MODE drawing_mode = TRIANGLES;
 
-Camera player_camera(glm::vec3(5.0f, 5.0f, 5.0f));
+Camera player_camera(glm::vec3(49.0f, 20.0f, 0.0f));
 Camera static_camera(glm::vec3(-20.0f, 10.0f, 20.0f));
 Camera *current_camera = &player_camera;
 CAMERA camera_index = PLAYER_CAMERA;
@@ -201,14 +201,9 @@ int main(int argc, char *argv[])
 	glEnable(GL_DEPTH_TEST);
 	// Accept fragment if it closer to the player_camera than the former one
 	glDepthFunc(GL_LESS);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
-	glFrontFace(GL_CCW);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
-
-	// Drawable player("data/sphere.obj", "shaders/aquarium.vsh", "shaders/aquarium.fsh",
-	// 				Material{glm::vec3(1.0, 0.0, 0.1333), glm::vec3(1.0, 0.0, 0.1333),
-	// 						 glm::vec3(0.5, 0.5, 0.5), 36.0f});
+	// glEnable(GL_CULL_FACE);
+	// glCullFace(GL_FRONT);
+	// glFrontFace(GL_CCW);
 
 	Heightmap heightmap("data/suzanne.obj", "shaders/default.vert", "shaders/default.frag");
 

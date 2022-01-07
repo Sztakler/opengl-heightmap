@@ -54,7 +54,6 @@ namespace map_loader
         {
             tokens.push_back(token);
             token = strtok(NULL, delim);
-            std::cout << token << " ";
         }
 
         std::string fname(tokens.back());

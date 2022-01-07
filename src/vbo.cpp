@@ -17,6 +17,13 @@ VBO::VBO(std::vector<float>* vertices, GLsizeiptr size)
     glBufferData(GL_ARRAY_BUFFER, size, &vertices->front(), GL_STATIC_DRAW);
 }
 
+VBO::VBO(std::vector<double>* vertices, GLsizeiptr size)
+{
+    glGenBuffers(1, &id);
+    glBindBuffer(GL_ARRAY_BUFFER, id);
+    glBufferData(GL_ARRAY_BUFFER, size, &vertices->front(), GL_STATIC_DRAW);
+}
+
 VBO::VBO(std::vector<coordinate_t>* vertices, GLsizeiptr size)
 {
     glGenBuffers(1, &id);

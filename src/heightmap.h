@@ -23,6 +23,7 @@ class Heightmap
         std::vector<coordinate_t> coordinates;
 
         std::string map_filename = "maps/test/N49E020.hgt";
+        float map_scale = 0.1;
         
 
     public:

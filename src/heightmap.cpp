@@ -4,11 +4,12 @@ Heightmap::Heightmap(const char* vertices_data_filename, const char* normals_dat
                const char* vertex_shader_filename, const char* fragment_shader_filename) 
 {
 
-    loadData(vertices_data_filename, this->vertices, 1.0);
+    // loadData(vertices_data_filename, this->vertices, 1.0);
+    loadHGTMap(map_filename);
 
     this->vertices_array = VAO();
     this->vertices_array.Bind();
-    this->vertices_buffer = VBO(&this->vertices, this->vertices.size() * sizeof(float));
+    this->vertices_buffer = VBO(&this->vertices, this->vertices.size() * sizeof(double));
 
     this->shader = Shader(vertex_shader_filename, fragment_shader_filename);
     
@@ -20,21 +21,22 @@ Heightmap::Heightmap(const char* obj_data_filename, const char* vertex_shader_fi
 {
 
     // loadFromObjectFile(obj_data_filename);
-    // loadHGTMap(map_filename);
+    loadHGTMap(map_filename);
 
-    this->coordinates = { {1.0, 1.0},
-                          {1.0, -1.0},
-                          {-1.0, -1.0}};
+    // for (int i = 0; i < 9; i += 3)
+    // {
+        // printf("{%f, %f, %f},\n", vertices[i], vertices[i+1], vertices[i+2]);
+    // }
 
     this->vertices_array = VAO();
     this->vertices_array.Bind();
-    this->vertices_buffer = VBO(&this->coordinates, this->coordinates.size() * sizeof(coordinate_t));
+    this->vertices_buffer = VBO(&this->vertices, this->vertices.size() * sizeof(float));
 
     this->shader = Shader(vertex_shader_filename, fragment_shader_filename);
     
     this->vertices_array.link_vbo(this->vertices_buffer, 0, 3);
 
-    printf("\n%d %d\n", heights.size(), coordinates.size());
+    printf("\nn_verts=%d\n", vertices.size());
 
     // for (int i = 0; i < heights.size(); i++)
     // {
@@ -220,6 +222,14 @@ bool Heightmap::loadHGTMap(std::string filename)
     map_loader::load_heightmap(heights, coordinates, const_cast<char*>(map_filename.c_str()));
 
     printf("Loaded %dx%d points.\n", heights.size(), coordinates.size());
+
+    for (int i = 0; i < heights.size(); i++)
+    {
+        this->vertices.push_back((float)coordinates[i].latitude);
+        this->vertices.push_back((float)coordinates[i].longitude);
+        this->vertices.push_back((float)heights[i] * map_scale);
+    }
+
     // std::cout << "Loadeing " << heights.size() << " " << coordinates.size() << " points.\n";
 
 
