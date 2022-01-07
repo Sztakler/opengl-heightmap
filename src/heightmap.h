@@ -6,6 +6,7 @@
 #include "vbo.h"
 #include "shader.h"
 #include "map_loader.h"
+#include <iomanip>
 
 class Heightmap
 {
@@ -17,22 +18,20 @@ class Heightmap
         Shader shader;
 
         std::vector<float> vertices;
-        std::vector<float> data;
 
         std::vector<uint16_t> heights;
+        std::vector<uint32_t> indexes;
         std::vector<coordinate_t> coordinates;
 
-        std::string map_filename = "maps/test/N49E020.hgt";
+
+        std::string map_filename = "maps/test/n48e013.hgt";
         float map_scale = 0.1;
         
 
     public:
-        Heightmap(const char* vertices_data_filename, const char* normals_data_filename, 
-               const char* vertex_shader_filename, const char* fragment_shader_filename);
         Heightmap(const char* obj_data_filename, const char* vertex_shader_filename,
                const char* fragment_shader_filename);
-        Heightmap(const char* obj_data_filename, const char* vertex_shader_filename,
-               const char* fragment_shader_filename, Material material);    
+
     public:
         void Bind();
         void Unbind();
@@ -43,7 +42,8 @@ class Heightmap
         bool replace(std::string& str, const std::string& from, const std::string& to);
         void loadData(const char* filename, std::vector<float> &data, float scale);
         bool loadFromObjectFile(const char* filename);
-        bool loadHGTMap(std::string filename);
+        bool loadHGTMap(std::string filename, std::vector<uint16_t> &heights, std::vector<coordinate_t> &coordinates, std::vector<uint> &indexes);
+        void calculate_indexes(std::vector<uint> &indexes);
 };
 
 #endif
