@@ -8,8 +8,8 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) :
 {
     this->position = position;
     this->world_up = up;
-    this->yaw = -130.0;
-    this->pitch = -30.0;
+    this->yaw = -90.0;
+    this->pitch = 0.0;
 
     updateCameraVectors();
 }

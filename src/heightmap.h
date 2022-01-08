@@ -4,6 +4,7 @@
 #include "includes.h"
 #include "vao.h"
 #include "vbo.h"
+#include "ebo.h"
 #include "shader.h"
 #include "map_loader.h"
 #include <iomanip>
@@ -15,6 +16,8 @@ class Heightmap
         
         VBO vertices_buffer;
 
+        EBO indexes_buffer;
+
         Shader shader;
 
         std::vector<float> vertices;
@@ -25,7 +28,7 @@ class Heightmap
 
 
         std::string map_filename = "maps/test/n48e013.hgt";
-        float map_scale = 0.1;
+        float map_scale = 0.0001;
         
 
     public:

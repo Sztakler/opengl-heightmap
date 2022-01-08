@@ -43,7 +43,7 @@ float yaw = -90.0f;
 
 DRAWING_MODE drawing_mode = TRIANGLES;
 
-Camera player_camera(glm::vec3(49.0f, 20.0f, 0.0f));
+Camera player_camera(glm::vec3(47.0f, 0.0f, 12.0f));
 Camera static_camera(glm::vec3(-20.0f, 10.0f, 20.0f));
 Camera *current_camera = &player_camera;
 CAMERA camera_index = PLAYER_CAMERA;
@@ -240,6 +240,8 @@ int main(int argc, char *argv[])
 			counter = 0;
 			lastFrame = currentFrame;
 		}
+
+		printf("camera: %f %f %f\n", player_camera.position.x, player_camera.position.y, player_camera.position.z);
 
 		processInput(window);
 

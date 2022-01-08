@@ -3,29 +3,31 @@
 Heightmap::Heightmap(const char *obj_data_filename, const char *vertex_shader_filename,
                      const char *fragment_shader_filename)
 {
-
-    // loadFromObjectFile(obj_data_filename);
     loadHGTMap(map_filename, heights, coordinates, indexes);
 
-    // for (int i = 0; i < 9; i += 3)
-    // {
-    // printf("{%f, %f, %f},\n", vertices[i], vertices[i+1], vertices[i+2]);
-    // }
+    // vertices = { 
+    //     -45.0f,  20.0f, 0.0f, // Top-left
+    //      45.0f,  20.0f, 0.0f, // Top-right
+    //      45.0f, -20.0f, 0.0f, // Bottom-right
+    //     -45.0f, -20.0f, 0.0f  // Bottom-left
+    //     };
+
+    // indexes = {
+    //     0, 1, 2,
+    //     2, 3, 0
+    // };
 
     this->vertices_array = VAO();
     this->vertices_array.Bind();
     this->vertices_buffer = VBO(&this->vertices, this->vertices.size() * sizeof(float));
 
+    this->indexes_buffer = EBO(&this->indexes, this->indexes.size() * sizeof(uint32_t));
+
     this->shader = Shader(vertex_shader_filename, fragment_shader_filename);
 
     this->vertices_array.link_vbo(this->vertices_buffer, 0, 3);
 
-    printf("\nn_verts=%d\n", vertices.size());
-
-    // for (int i = 0; i < heights.size(); i++)
-    // {
-    //     printf("[i]%d [heights] %d    [coordinates] N%fE%f\n", i, heights[i], coordinates[i].latitude, coordinates[i].longitude);
-    // }
+    printf("\nn_verts=%d n_indexes=%d\n", vertices.size(), indexes.size());
 }
 
 
@@ -50,18 +52,20 @@ void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, D
     glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(*view));
     glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(*projection));
 
-    switch (drawing_mode)
-    {
-    case TRIANGLES:
-        glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 3);
-        break;
+    glDrawElements(GL_TRIANGLES, indexes.size(), GL_UNSIGNED_INT, 0);
 
-    case WIREFRAME:
-        glDrawArrays(GL_LINES, 0, vertices.size() / 3);
-        break;
-    default:
-        glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 3);
-    }
+    // switch (drawing_mode)
+    // {
+    // case TRIANGLES:
+    //     glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 3);
+    //     break;
+
+    // case WIREFRAME:
+    //     glDrawArrays(GL_LINES, 0, vertices.size() / 3);
+    //     break;
+    // default:
+    //     glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 3);
+    // }
 }
 
 void Heightmap::loadData(const char *filename, std::vector<float> &data, float scale)
@@ -194,25 +198,21 @@ bool Heightmap::loadHGTMap(std::string filename, std::vector<uint16_t> &heights,
     for (int i = 0; i < heights.size(); i++)
     {
         this->vertices.push_back((float)coordinates[i].latitude);
+
+        /* Clamp incorrect height data to 0. */
+        if (heights[i] > 8000)
+            this->vertices.push_back(0.0);
+        else
+            this->vertices.push_back((float)heights[i] * map_scale);
+        
+        
         this->vertices.push_back((float)coordinates[i].longitude);
-        this->vertices.push_back((float)heights[i] * map_scale);
     }
 
     calculate_indexes(indexes);
 
 
     printf("%d\n", indexes.size());
-
-    std::ofstream file;
-    file.open("dla_bartusia.txt");
-
-    for (uint i = 0; i < 1200*1200*6; i += 3)
-    {
-        // std::cout << indexes[i] << "\n";
-        // printf("[%d %d %d] %d %d %d\n", i, i+1, i+2 , indexes[i], indexes[i+1], indexes[i+2]);
-        file << "[" << i << "] " << std::setw(7) << indexes[i] << std::setw(7) <<  " " << indexes[i + 1] << std::setw(7) << " " << indexes[i + 2] << "\n"; 
-    }
-    file.close();
 }
 
 bool Heightmap::replace(std::string &str, const std::string &from, const std::string &to)
