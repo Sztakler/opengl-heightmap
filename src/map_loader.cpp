@@ -20,9 +20,11 @@ namespace map_loader
 
         if (!in_file_stream)
         {
-            std::cout << "Couldn't open file " << filename;
+            std::cout << "Couldn't open file " << filename << '\n';
             return;
         }
+
+        std::cout << "Opened file " << filename << '\n';
 
         in_file_stream.seekg(0, in_file_stream.end);
         int file_length = in_file_stream.tellg();
@@ -150,9 +152,9 @@ namespace map_loader
             if (filename[0] == '.')
                 continue;
 
-            char *extension = strtok(filename, ".");
-            extension = strtok(NULL, ".");
-            if (strcmp(extension, extension) == 0)
+            char *ext = strtok(filename, ".");
+            ext = strtok(NULL, ".");
+            if (strcmp(extension, ext) == 0)
             {
                 // std::cout << entry->d_name << '\n';
                 std::string path(directory_name);

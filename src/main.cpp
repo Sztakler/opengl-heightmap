@@ -13,6 +13,26 @@
 
 #include <GLFW/glfw3.h>
 
+void calculate_indexes(std::vector<uint> &indexes)
+{
+    int n_rows = 1201;
+    int step = 1;
+    
+    for (uint i = 0; i < n_rows - step; i += step)
+    {
+        for (uint j = 0; j < n_rows - step; j += step)
+        {
+            indexes.push_back(i * n_rows + j);
+            indexes.push_back((i + step) * n_rows + j + step);
+            indexes.push_back(i * n_rows + j + step);
+
+            indexes.push_back(i * n_rows + j);
+            indexes.push_back((i + step) * n_rows + j + step);
+            indexes.push_back((i + step) * n_rows + j);
+        }
+    } 
+}
+
 void windowResizeHandler(GLFWwindow *window, int width, int height)
 {
 	const float aspectRatio = (float)width / height;
@@ -200,12 +220,39 @@ int main(int argc, char *argv[])
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
 	// Accept fragment if it closer to the player_camera than the former one
-	glDepthFunc(GL_LESS);
+	// glDepthFunc(GL_LESS);
 	// glEnable(GL_CULL_FACE);
 	// glCullFace(GL_FRONT);
 	// glFrontFace(GL_CCW);
 
-	Heightmap heightmap("data/suzanne.obj", "shaders/default.vert", "shaders/default.frag");
+	std::vector<uint> indexes;
+	calculate_indexes(indexes);
+
+	std::vector<Heightmap> heightmaps;
+	std::vector<std::string> map_list;
+
+	// map_loader::get_files_list_by_extension(map_list, "maps/M33", "maps", "hgt");
+	// map_loader::get_files_list_by_extension(map_list, "maps/M34", "maps", "hgt");
+	// map_loader::get_files_list_by_extension(map_list, "maps/N33", "maps", "hgt");
+	map_loader::get_files_list_by_extension(map_list, "maps/M34", "maps", "hgt");
+
+
+	for (std::string map_file : map_list)
+	{
+		std::cout << "Creating renderer for " << map_file << "\n";
+		Heightmap hmap(map_file.c_str(), "shaders/default.vert", "shaders/default.frag", &indexes);
+		heightmaps.push_back(hmap);
+	}
+	std::cout << "\n";
+
+	// Heightmap heightmap1("maps/M33/N50E017.hgt", "shaders/default.vert", "shaders/default.frag");
+	// heightmaps.push_back(heightmap1);
+	// Heightmap heightmap2("maps/M34/N50E018.hgt", "shaders/default.vert", "shaders/default.frag");
+	// heightmaps.push_back(heightmap2);
+	// Heightmap heightmap3("maps/M34/N50E019.hgt", "shaders/default.vert", "shaders/default.frag");
+	// heightmaps.push_back(heightmap3);
+	// Heightmap heightmap4("maps/M34/N49E019.hgt", "shaders/default.vert", "shaders/default.frag");
+	// heightmaps.push_back(heightmap4);
 
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 view = glm::mat4(1.0f);
@@ -241,7 +288,7 @@ int main(int argc, char *argv[])
 			lastFrame = currentFrame;
 		}
 
-		printf("camera: %f %f %f\n", player_camera.position.x, player_camera.position.y, player_camera.position.z);
+		// printf("camera: %f %f %f\n", player_camera.position.x, player_camera.position.y, player_camera.position.z);
 
 		processInput(window);
 
@@ -253,10 +300,15 @@ int main(int argc, char *argv[])
 
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
-		heightmap.shader.Activate();
-		heightmap.Bind();
-		heightmap.Draw(&model, &view, &projection, TRIANGLES, false, player_camera.position);
-		heightmap.Unbind();
+
+		for (Heightmap &heightmap : heightmaps)
+		{
+			heightmap.shader.Activate();
+			heightmap.Bind();
+			heightmap.Draw(&model, &view, &projection, TRIANGLES, false, player_camera.position);
+			heightmap.Unbind();
+		}
+
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);

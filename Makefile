@@ -1,6 +1,6 @@
 GPP = g++
 NAME =  heightmap
-DEBUG_FLAGS = -g -Wall -I.
+DEBUG_FLAGS = -g -Wall -Werror -O3 -I.
 LINKER_FLAGS = -lGLEW  -lGL -lglfw
 OBJ_DIR = obj
 SRC_DIR = src

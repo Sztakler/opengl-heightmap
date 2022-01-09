@@ -1,35 +1,45 @@
 #include "heightmap.h"
 
-Heightmap::Heightmap(const char *obj_data_filename, const char *vertex_shader_filename,
-                     const char *fragment_shader_filename)
+Heightmap::Heightmap(const char *map_filename, const char *vertex_shader_filename,
+                     const char *fragment_shader_filename, std::vector<uint32_t>* indexes)
 {
-    loadHGTMap(map_filename, heights, coordinates, indexes);
+    printf("%p %p\n", indexes, this->indexes);
+    loadHGTMap(map_filename, heights, coordinates);
+    this->indexes = indexes;
+    printf("%p %p\n", indexes, this->indexes);
 
-    // vertices = { 
-    //     -45.0f,  20.0f, 0.0f, // Top-left
-    //      45.0f,  20.0f, 0.0f, // Top-right
-    //      45.0f, -20.0f, 0.0f, // Bottom-right
-    //     -45.0f, -20.0f, 0.0f  // Bottom-left
-    //     };
-
-    // indexes = {
-    //     0, 1, 2,
-    //     2, 3, 0
-    // };
 
     this->vertices_array = VAO();
     this->vertices_array.Bind();
     this->vertices_buffer = VBO(&this->vertices, this->vertices.size() * sizeof(float));
 
-    this->indexes_buffer = EBO(&this->indexes, this->indexes.size() * sizeof(uint32_t));
+    this->indexes_buffer = EBO(this->indexes, this->indexes->size() * sizeof(uint32_t));
 
     this->shader = Shader(vertex_shader_filename, fragment_shader_filename);
 
     this->vertices_array.link_vbo(this->vertices_buffer, 0, 3);
 
-    printf("\nn_verts=%d n_indexes=%d\n", vertices.size(), indexes.size());
+    printf("\nn_verts=%d n_indexes=%d\n", vertices.size(), this->indexes->size());
 }
 
+Heightmap::Heightmap(const char *map_filename, const char *vertex_shader_filename,
+                     const char *fragment_shader_filename)
+{
+    loadHGTMap(map_filename, heights, coordinates);
+    this->indexes = indexes;
+
+    this->vertices_array = VAO();
+    this->vertices_array.Bind();
+    this->vertices_buffer = VBO(&this->vertices, this->vertices.size() * sizeof(float));
+
+    this->indexes_buffer = EBO(this->indexes, this->indexes->size() * sizeof(uint32_t));
+
+    this->shader = Shader(vertex_shader_filename, fragment_shader_filename);
+
+    this->vertices_array.link_vbo(this->vertices_buffer, 0, 3);
+
+    printf("\nn_verts=%d n_indexes=%d\n", vertices.size(), indexes->size());
+}
 
 void Heightmap::Bind()
 {
@@ -52,8 +62,7 @@ void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, D
     glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(*view));
     glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(*projection));
 
-    glDrawElements(GL_TRIANGLES, indexes.size(), GL_UNSIGNED_INT, 0);
-
+    glDrawElements(GL_TRIANGLES, indexes->size(), GL_UNSIGNED_INT, 0);
     // switch (drawing_mode)
     // {
     // case TRIANGLES:
@@ -68,130 +77,10 @@ void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, D
     // }
 }
 
-void Heightmap::loadData(const char *filename, std::vector<float> &data, float scale)
+bool Heightmap::loadHGTMap(const char* map_filename, std::vector<uint16_t> &heights, std::vector<coordinate_t> &coordinates)
 {
-    std::ifstream in(filename);
-    std::string line;
-
-    while (std::getline(in, line))
-    {
-        std::string value;
-        for (auto &c : line)
-        {
-            if (c == ',')
-            {
-                data.push_back(std::stof(value) * scale);
-                value = "";
-                continue;
-            }
-            value += c;
-        }
-    }
-}
-
-bool Heightmap::loadFromObjectFile(const char *filename)
-{
-    std::ifstream f(filename);
-    if (!f.is_open())
-        return false;
-
-    std::vector<vec3d> temp_vertices;
-    std::vector<vec3d> temp_normals;
-    vec3d vn = {0.0, 0.0, 0.0};
-    vec3d v = {0.0, 0.0, 0.0};
-
-    while (!f.eof())
-    {
-        char line[128];
-        f.getline(line, 128);
-
-        std::stringstream s;
-        s << line;
-
-        char junk;
-
-        if (line[0] == 'v')
-        {
-            if (line[1] == 'n')
-            {
-                char delimiter[] = " ";
-                std::vector<std::string> tokens;
-
-                char *token = strtok(line, delimiter);
-                while (token)
-                {
-                    tokens.push_back(std::string(token));
-                    token = strtok(nullptr, delimiter);
-                }
-
-                vn.x = stof(tokens[1]);
-                vn.y = stof(tokens[2]);
-                vn.z = stof(tokens[3]);
-
-                temp_normals.push_back(vn);
-            }
-            else
-            {
-                char delimiter[] = " ";
-                std::vector<std::string> tokens;
-
-                char *token = strtok(line, delimiter);
-                while (token)
-                {
-                    tokens.push_back(std::string(token));
-                    token = strtok(nullptr, delimiter);
-                }
-
-                v.x = stof(tokens[1]);
-                v.y = stof(tokens[2]);
-                v.z = stof(tokens[3]);
-
-                temp_vertices.push_back(v);
-            }
-        }
-
-        if (line[0] == 'f')
-        {
-            int f[3];
-            int n[3];
-
-            std::string parts[3];
-
-            s >> junk >> parts[0] >> parts[1] >> parts[2];
-
-            for (int i = 0; i < 3; i++)
-            {
-                replace(parts[i], "//", " ");
-
-                char delimiter[] = " ";
-                std::vector<std::string> numbers;
-
-                char *token = strtok(const_cast<char *>(parts[i].c_str()), delimiter);
-                while (token != nullptr)
-                {
-                    numbers.push_back(std::string(token));
-                    token = strtok(nullptr, delimiter);
-                }
-
-                f[i] = stoi(numbers[0]);
-                n[i] = stoi(numbers[1]);
-            }
-
-            for (int i = 0; i < 3; i++)
-            {
-                this->vertices.push_back(temp_vertices[f[i] - 1].x);
-                this->vertices.push_back(temp_vertices[f[i] - 1].y);
-                this->vertices.push_back(temp_vertices[f[i] - 1].z);
-            }
-        }
-    }
-    return true;
-}
-
-bool Heightmap::loadHGTMap(std::string filename, std::vector<uint16_t> &heights, std::vector<coordinate_t> &coordinates, std::vector<uint> &indexes)
-{
-    map_loader::load_heightmap(heights, coordinates, const_cast<char *>(map_filename.c_str()));
-
+    map_loader::load_heightmap(heights, coordinates, const_cast<char*>(map_filename));
+// nic
 
     printf("Loaded %dx%d points.\n", heights.size(), coordinates.size());
 
@@ -208,11 +97,12 @@ bool Heightmap::loadHGTMap(std::string filename, std::vector<uint16_t> &heights,
         
         this->vertices.push_back((float)coordinates[i].longitude);
     }
+    printf("Loaded %d points to vertices.\n", vertices.size());
 
-    calculate_indexes(indexes);
+    // calculate_indexes(indexes);
 
 
-    printf("%d\n", indexes.size());
+    // printf("n_indexes = %d\n", indexes->size());
 }
 
 bool Heightmap::replace(std::string &str, const std::string &from, const std::string &to)
@@ -227,18 +117,33 @@ bool Heightmap::replace(std::string &str, const std::string &from, const std::st
 void Heightmap::calculate_indexes(std::vector<uint> &indexes)
 {
     int n_rows = 1201;
+    int step = 10;
 
-    for (uint i = 0; i < n_rows - 1; i++)
+    // for (uint i = 0; i < n_rows - 1; i++)
+    // {
+    //     for (uint j = 0; j < n_rows - 1; j++)
+    //     {
+    //         indexes.push_back(i * n_rows + j);
+    //         indexes.push_back((i + 1) * n_rows + j + 1);
+    //         indexes.push_back(i * n_rows + j + 1);
+
+    //         indexes.push_back(i * n_rows + j);
+    //         indexes.push_back((i + 1) * n_rows + j + 1);
+    //         indexes.push_back((i + 1) * n_rows + j);
+    //     }
+    // }
+    
+    for (uint i = 0; i < n_rows - step; i += step)
     {
-        for (uint j = 0; j < n_rows - 1; j++)
+        for (uint j = 0; j < n_rows - step; j += step)
         {
             indexes.push_back(i * n_rows + j);
-            indexes.push_back((i + 1) * n_rows + j + 1);
-            indexes.push_back(i * n_rows + j + 1);
+            indexes.push_back((i + step) * n_rows + j + step);
+            indexes.push_back(i * n_rows + j + step);
 
             indexes.push_back(i * n_rows + j);
-            indexes.push_back((i + 1) * n_rows + j + 1);
-            indexes.push_back((i + 1) * n_rows + j);
+            indexes.push_back((i + step) * n_rows + j + step);
+            indexes.push_back((i + step) * n_rows + j);
         }
     }
     
