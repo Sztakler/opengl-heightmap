@@ -8,7 +8,7 @@
         void VAO::link_vbo(VBO vbo, GLuint layout, GLuint size)
         {
             vbo.Bind();
-            glVertexAttribPointer(layout, size, GL_FLOAT, GL_FALSE, 0, (void*)0);
+            glVertexAttribPointer(layout, size, GL_SHORT, GL_FALSE, 0, (void*)0);
             glEnableVertexAttribArray(layout);
             vbo.Unbind();
         }
@@ -16,12 +16,12 @@
         void VAO::link_instance_vbo(VBO vbo, GLuint layout, GLuint size, GLuint divisor)
         {
             vbo.Bind();
-            glVertexAttribPointer(layout, size, GL_FLOAT, GL_FALSE, 0, (void*)0);
+            glVertexAttribPointer(layout, size, GL_SHORT, GL_FALSE, 0, (void*)0);
             glEnableVertexAttribArray(layout);
             vbo.Unbind();
             glVertexAttribDivisor(layout, divisor);
         }
-        
+
         void VAO::Bind()
         {
             glBindVertexArray(id);

@@ -16,7 +16,7 @@
 void calculate_indexes(std::vector<uint> &indexes)
 {
     int n_rows = 1201;
-    int step = 1;
+    int step = 10;
     
     for (uint i = 0; i < n_rows - step; i += step)
     {
@@ -61,9 +61,11 @@ float fov = 45.0f;
 float pitch = 0.0f;
 float yaw = -90.0f;
 
+int lod = 0;
+
 DRAWING_MODE drawing_mode = TRIANGLES;
 
-Camera player_camera(glm::vec3(47.0f, 0.0f, 12.0f));
+Camera player_camera(glm::vec3(53.0f, 0.0f, 18.0f));
 Camera static_camera(glm::vec3(-20.0f, 10.0f, 20.0f));
 Camera *current_camera = &player_camera;
 CAMERA camera_index = PLAYER_CAMERA;
@@ -102,6 +104,28 @@ void processInput(GLFWwindow *window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod = 1;
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod = 2;
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod = 3;
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod = 4;
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod = 5;
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod = 6;
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod = 7;
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod = 8;
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod = 9;
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod = 0;
+
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		player_camera.processKeyboard(FORWARD, delta_time);
@@ -229,21 +253,58 @@ int main(int argc, char *argv[])
 	calculate_indexes(indexes);
 
 	std::vector<Heightmap> heightmaps;
-	std::vector<std::string> map_list;
-
-	// map_loader::get_files_list_by_extension(map_list, "maps/M33", "maps", "hgt");
-	// map_loader::get_files_list_by_extension(map_list, "maps/M34", "maps", "hgt");
-	// map_loader::get_files_list_by_extension(map_list, "maps/N33", "maps", "hgt");
-	map_loader::get_files_list_by_extension(map_list, "maps/M34", "maps", "hgt");
+	std::vector<std::string> map_list_M34;
+	std::vector<std::string> map_list_N34;
+	std::vector<std::string> subdirectories_list;
 
 
-	for (std::string map_file : map_list)
+	map_loader::get_files_list_by_extension(map_list_M34, "maps/M34", "maps", "hgt");
+
+	map_loader::get_subdirectories_list(subdirectories_list, "maps");
+
+	// for (auto dirname : subdirectories_list)
+	// {
+		// std::cout << dirname << "\n";
+	// }
+
+	double load_start = glfwGetTime();
+
+	for(std::string subdirectory_name : subdirectories_list)
 	{
-		std::cout << "Creating renderer for " << map_file << "\n";
-		Heightmap hmap(map_file.c_str(), "shaders/default.vert", "shaders/default.frag", &indexes);
-		heightmaps.push_back(hmap);
+		std::vector<std::string> mapfiles_list;
+		map_loader::get_files_list_by_extension(mapfiles_list, const_cast<char*>(subdirectory_name.c_str()), "maps", "hgt");
+
+		for(std::string mapfilename : mapfiles_list)
+		{
+			std::cout << "\nCreating renderer for " << mapfilename << "\n";
+			Heightmap hmap(mapfilename.c_str(), "shaders/default.vert", "shaders/default.frag", &indexes);
+			heightmaps.push_back(hmap);
+		}
 	}
-	std::cout << "\n";
+
+	double load_end = glfwGetTime();
+	double load_time = load_end - load_start;
+
+	std::cout << "Loaded " << heightmaps.size() << " chunks in " << load_time << "s [" << load_time / heightmaps.size() << "s per chunk]\n";
+
+	// for (std::string map_file : map_list_M34)
+	// {
+	// 	std::cout << "Creating renderer for " << map_file << "\n";
+	// 	Heightmap hmap(map_file.c_str(), "shaders/default.vert", "shaders/default.frag", &indexes);
+	// 	heightmaps.push_back(hmap);
+	// }
+	// std::cout << "\n";
+
+	// map_loader::get_files_list_by_extension(map_list_N34, "maps/N34", "maps", "hgt");
+
+
+	// for (std::string map_file : map_list_N34)
+	// {
+	// 	std::cout << "Creating renderer for " << map_file << "\n";
+	// 	Heightmap hmap(map_file.c_str(), "shaders/default.vert", "shaders/default.frag", &indexes);
+	// 	heightmaps.push_back(hmap);
+	// }
+	// std::cout << "\n";
 
 	// Heightmap heightmap1("maps/M33/N50E017.hgt", "shaders/default.vert", "shaders/default.frag");
 	// heightmaps.push_back(heightmap1);
@@ -263,6 +324,7 @@ int main(int argc, char *argv[])
 
 	// float deltaTime = 0.0f;	// Time between current frame and last frame
 	float lastFrame = 0.0f; // Time of last frame
+
 
 	player_camera.front = glm::vec3(-0.5, -0.5, -0.5);
 
@@ -303,9 +365,13 @@ int main(int argc, char *argv[])
 
 		for (Heightmap &heightmap : heightmaps)
 		{
+			// std::cout << "activating shader\n";
 			heightmap.shader.Activate();
+			// std::cout << "binding\n";
 			heightmap.Bind();
+			// std::cout << "drawing\n";
 			heightmap.Draw(&model, &view, &projection, TRIANGLES, false, player_camera.position);
+			// std::cout << "unbinding\n";
 			heightmap.Unbind();
 		}
 

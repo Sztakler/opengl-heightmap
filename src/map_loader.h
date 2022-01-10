@@ -11,7 +11,8 @@ namespace map_loader {
     /* Populates 'heights' vector with heights (in meters above sea level) from .hgt file 'filename'. 
     * 'filename' parameter is either relative or absolute path to .hgt file.
     */
-    void load_heightmap(std::vector<uint16_t> &heights, std::vector<coordinate_t> &coordinates, char* filename);
+    // void load_heightmap(std::vector<uint16_t> &heights, std::vector<coordinate_t> &coordinates, char* filename);
+    void load_heightmap(std::vector<int16_t> &vertices, char* filename);
 
     /* Populates 'directories_list' vector with paths to directories inside 'directory_name'. */
     void get_subdirectories_list(std::vector<std::string> &directories_list, char* directory_name);

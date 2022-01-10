@@ -35,12 +35,12 @@ void load_heightmap(std::vector<uint16_t> &heights, std::vector<coordinate_t> &c
     int file_length = in_file_stream.tellg();
     in_file_stream.seekg(0, in_file_stream.beg);
 
-    printf("Creating buffer of size %d bytes...", file_length);
+    printf("Creating buffer of size %d bytes.\n", file_length);
 
     // char* buffer = new char[file_length];
     std::vector<unsigned char> bytes(file_length, 0);
 
-    printf(" buffer created successfully.\nReading %d characters... ", file_length);
+    printf("\033[92mBuffer created successfully.\n\033[0mReading %d characters... ", file_length);
     // in_file_stream.read(buffer, file_length);
     in_file_stream.read((char*)&bytes[0], bytes.size());
     if (in_file_stream)
@@ -206,48 +206,57 @@ void get_files_list_by_extension(std::vector<std::string> &files_list, char* dir
 int main()
 {
 
-    std::vector<std::string> directories;
-    std::vector<std::string> hgtmaps;
-    char map_directory[] = "maps";
-    char extension[] = "hgt";
+    // std::vector<std::string> directories;
+    // std::vector<std::string> hgtmaps;
+    // char map_directory[] = "maps";
+    // char extension[] = "hgt";
 
-    get_subdirectories_list(directories, map_directory);
+    // get_subdirectories_list(directories, map_directory);
 
-    for (std::string directory_name : directories)
-    {
-        char* c_dirname = const_cast<char*>(directory_name.c_str());
-        get_files_list_by_extension(hgtmaps, c_dirname, map_directory, extension);
-    }
-
-    // std::vector<std::vector<uint16_t>> heights;
-    std::vector<uint16_t> heights;
-    std::vector<coordinate_t> coordinates;
-
-    char filename[] = "maps/test/N49E020.hgt";
-
-
-    load_heightmap(heights, coordinates, filename);
-
-    // int n_rows = heights.size();
-    // int n_cols = heights[0].size();
-
-    // printf("Printing %d heights.\n", n_rows * n_cols);
-
-    // for (int i = 0; i < n_rows; i++)
+    // for (std::string directory_name : directories)
     // {
-    //     for (int j = 0; j < n_cols; j++)
-    //     {
-    //         if (heights[i][j] > 8000)
-    //             std::cout << "[" << i << " " << j << "][" << i * n_rows + j <<  "] " << heights[i][j] << "\n";
-    //     }
+    //     char* c_dirname = const_cast<char*>(directory_name.c_str());
+    //     get_files_list_by_extension(hgtmaps, c_dirname, map_directory, extension);
     // }
 
-    for (uint i = 0; i < heights.size(); i++)
-    {
-        // if (heights[i] > 8000)
-            // std::cout << "[" << i << "] " << heights[i] <<  "\n";
-        printf("[i=%d] [h]%d N%f E%f\n", i, heights[i], coordinates[i].latitude, coordinates[i].longitude);
-    }
+    // // std::vector<std::vector<uint16_t>> heights;
+    // std::vector<uint16_t> heights;
+    // std::vector<coordinate_t> coordinates;
+
+    // char filename[] = "maps/test/N49E020.hgt";
+
+
+    // load_heightmap(heights, coordinates, filename);
+
+    // // int n_rows = heights.size();
+    // // int n_cols = heights[0].size();
+
+    // // printf("Printing %d heights.\n", n_rows * n_cols);
+
+    // // for (int i = 0; i < n_rows; i++)
+    // // {
+    // //     for (int j = 0; j < n_cols; j++)
+    // //     {
+    // //         if (heights[i][j] > 8000)
+    // //             std::cout << "[" << i << " " << j << "][" << i * n_rows + j <<  "] " << heights[i][j] << "\n";
+    // //     }
+    // // }
+
+    // for (uint i = 0; i < heights.size(); i++)
+    // {
+    //     // if (heights[i] > 8000)
+    //         // std::cout << "[" << i << "] " << heights[i] <<  "\n";
+    //     printf("[i=%d] [h]%d N%f E%f\n", i, heights[i], coordinates[i].latitude, coordinates[i].longitude);
+    // }
+
+    uint8_t bytes[] = {200, 136};
+
+    uint8_t byte_high = bytes[0];
+    uint8_t byte_low = bytes[1];
+    int16_t height = (byte_high << 8) + byte_low;
+
+    printf("b0=%"PRIu8" b1=%"PRId8" bh=%"PRIu8" bl=%"PRId8" hs=%"PRId16" hu=%"PRIu16"\n", bytes[0], byte_high, bytes[1], byte_low, height, (uint16_t)height);
+    std::cout << byte_high << " " << byte_low << " " << height << '\n';
 
     return 0;
 }

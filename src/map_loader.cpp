@@ -11,7 +11,7 @@
 
 namespace map_loader
 {
-    void load_heightmap(std::vector<uint16_t> &heights, std::vector<coordinate_t> &coordinates, char *filename)
+    void load_heightmap(std::vector<int16_t> &vertices, char *filename)
     {
         std::string line;
         std::string word;
@@ -20,7 +20,7 @@ namespace map_loader
 
         if (!in_file_stream)
         {
-            std::cout << "Couldn't open file " << filename << '\n';
+            std::cout << "\033[91mCouldn't open file " << filename << '\n\033[0m';
             return;
         }
 
@@ -30,17 +30,17 @@ namespace map_loader
         int file_length = in_file_stream.tellg();
         in_file_stream.seekg(0, in_file_stream.beg);
 
-        printf("Creating buffer of size %d bytes...", file_length);
+        printf("Creating buffer of size %d bytes.\n", file_length);
 
         std::vector<unsigned char> bytes(file_length, 0);
 
-        printf(" buffer created successfully.\nReading %d characters... ", file_length);
+        printf("\033[92mBuffer created successfully.\033[0m\nReading %d characters...\n", file_length);
 
         in_file_stream.read((char *)&bytes[0], bytes.size());
         if (in_file_stream)
-            printf("all characters read successfully.\n");
+            printf("\033[92mAll characters read successfully.\n\033[0m");
         else
-            printf("error: only %ld could be read.", in_file_stream.gcount());
+            printf("\033[91merror: only %ld could be read.\n\033[0m", in_file_stream.gcount());
 
         in_file_stream.close();
 
@@ -65,10 +65,10 @@ namespace map_loader
 
         double longitude = origin_longitude;
 
-        std::cout << fname << " N" << latitude << " E" << longitude << "\n";
+        // std::cout << fname << " N" << latitude << " E" << longitude << "\n";
 
-        uint rows = 0;
-        uint cols = 0;
+        int16_t rows = 0;
+        int16_t cols = 0;
 
         if (file_length == 2 * 1201 * 1201)
         {
@@ -83,27 +83,49 @@ namespace map_loader
 
         double delta = 1.0 / rows;
 
-        for (uint i = 0; i < rows; i++)
+        // std::ofstream file;
+        // file.open("result.txt");
+        // file << fname << " N" << latitude << " E" << longitude << "\n";
+        // file << delta << '\n';
+        // file << "Reading " << rows << " rows and " << cols / 2 << " columns (" << rows * cols / 2 << ")\n";
+
+        for (int16_t i = 0; i < rows; i++)
         {
-            for (uint j = 0; j < cols; j += 2)
+            for (int16_t j = 0; j < cols; j += 2)
             {
-                uint k = cols * i + j;
+                int k = cols * i + j;
 
                 uint8_t byte_high = bytes[k];
                 uint8_t byte_low = bytes[k + 1];
-                uint16_t height = (byte_high << 8) + byte_low;
+                int16_t height = (byte_high << 8) + byte_low;
+                // file << byte_high << " " << byte_low << " " << height << "\n";
+                // file << "[Pushing " << i << " " << height << " " << j / 2 << "] "; 
 
-                heights.push_back(height);
+                // // if ( i > 12)
+                // // {
+                // //     file.close();
+                // //     return;
+                // // }
 
-                coordinate_t coord = {.latitude = latitude, .longitude = longitude};
-                coordinates.push_back(coord);
+                vertices.push_back(i);
+                // file << vertices.back() << " ";
+                vertices.push_back(height);
+                // file << vertices.back() << " ";
+                vertices.push_back(j / 2);
+                // file << vertices.back() << " "; 
+                // file << "[" << i * rows + j / 2 << "/" << rows*cols << "] "; 
+                // file << vertices.size() << "\n";
+                // coordinate_t coord = {.latitude = latitude, .longitude = longitude};
+                // coordinates.push_back(coord);
 
-                longitude += delta;
+                // // longitude += delta;
             }
 
-            latitude -= delta;
-            longitude = origin_longitude;
+            // latitude -= delta;
+            // longitude = origin_longitude;
         }
+        // std::cout << "dupa tu\n";
+        // file.close();
     }
 
     void get_subdirectories_list(std::vector<std::string> &directories_list, char *directory_name)

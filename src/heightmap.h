@@ -20,14 +20,15 @@ class Heightmap
 
         Shader shader;
 
-        std::vector<float> vertices;
-
-        std::vector<uint16_t> heights;
+        // std::vector<float> vertices;
+        std::vector<int16_t> vertices;
+        // std::vector<int16_t> heights;
         // std::vector<uint32_t> indexes;
         std::vector<uint32_t>* indexes;
-        std::vector<coordinate_t> coordinates;
+        // std::vector<coordinate_t> coordinates;
 
         float map_scale = 0.0001;
+        glm::vec2 chunk_origin;
         
     public:
         Heightmap(const char* obj_data_filename, const char* vertex_shader_filename,
@@ -46,6 +47,7 @@ class Heightmap
         void loadData(const char* filename, std::vector<float> &data, float scale);
         bool loadFromObjectFile(const char* filename);
         bool loadHGTMap(const char* filename, std::vector<uint16_t> &heights, std::vector<coordinate_t> &coordinates);
+        bool loadHGTMap(const char* filename, std::vector<int16_t> &vertices, glm::vec2 &chunk_origin);
         void calculate_indexes(std::vector<uint> &indexes);
 };
 
