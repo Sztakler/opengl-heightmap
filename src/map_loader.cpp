@@ -65,8 +65,6 @@ namespace map_loader
 
         double longitude = origin_longitude;
 
-        // std::cout << fname << " N" << latitude << " E" << longitude << "\n";
-
         int16_t rows = 0;
         int16_t cols = 0;
 
@@ -83,12 +81,6 @@ namespace map_loader
 
         double delta = 1.0 / rows;
 
-        // std::ofstream file;
-        // file.open("result.txt");
-        // file << fname << " N" << latitude << " E" << longitude << "\n";
-        // file << delta << '\n';
-        // file << "Reading " << rows << " rows and " << cols / 2 << " columns (" << rows * cols / 2 << ")\n";
-
         for (int16_t i = 0; i < rows; i++)
         {
             for (int16_t j = 0; j < cols; j += 2)
@@ -98,34 +90,12 @@ namespace map_loader
                 uint8_t byte_high = bytes[k];
                 uint8_t byte_low = bytes[k + 1];
                 int16_t height = (byte_high << 8) + byte_low;
-                // file << byte_high << " " << byte_low << " " << height << "\n";
-                // file << "[Pushing " << i << " " << height << " " << j / 2 << "] "; 
-
-                // // if ( i > 12)
-                // // {
-                // //     file.close();
-                // //     return;
-                // // }
 
                 vertices.push_back(i);
-                // file << vertices.back() << " ";
                 vertices.push_back(height);
-                // file << vertices.back() << " ";
                 vertices.push_back(j / 2);
-                // file << vertices.back() << " "; 
-                // file << "[" << i * rows + j / 2 << "/" << rows*cols << "] "; 
-                // file << vertices.size() << "\n";
-                // coordinate_t coord = {.latitude = latitude, .longitude = longitude};
-                // coordinates.push_back(coord);
-
-                // // longitude += delta;
             }
-
-            // latitude -= delta;
-            // longitude = origin_longitude;
         }
-        // std::cout << "dupa tu\n";
-        // file.close();
     }
 
     void get_subdirectories_list(std::vector<std::string> &directories_list, char *directory_name)
@@ -178,11 +148,9 @@ namespace map_loader
             ext = strtok(NULL, ".");
             if (strcmp(extension, ext) == 0)
             {
-                // std::cout << entry->d_name << '\n';
                 std::string path(directory_name);
                 path.append("/");
                 path.append(entry->d_name);
-                // std::cout << path << "\n";
                 files_list.push_back(path);
             }
         }

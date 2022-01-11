@@ -3,14 +3,8 @@
 Heightmap::Heightmap(const char *map_filename, const char *vertex_shader_filename,
                      const char *fragment_shader_filename, std::vector<uint32_t>* indexes)
 {
-    // printf("indexes pointers %p %p\n", indexes, this->indexes);
-    // printf("vertices pointers %p\n", this->vertices);
-    // loadHGTMap(map_filename, heights, coordinates);
     loadHGTMap(map_filename, this->vertices, this->chunk_origin);
-    // printf("konstruktor\n");
     this->indexes = indexes;
-    // printf("%p %p\n", indexes, this->indexes);
-    // printf("vertices pointers %p\n", vertices);
 
 
     this->vertices_array = VAO();
@@ -22,36 +16,8 @@ Heightmap::Heightmap(const char *map_filename, const char *vertex_shader_filenam
     this->shader = Shader(vertex_shader_filename, fragment_shader_filename);
 
     this->vertices_array.link_vbo(this->vertices_buffer, 0, 3);
-
-    // std::ofstream file;
-    // file.open("result.txt");
-    for (int i = 0; i < vertices.size(); i += 3)
-    {
-        // printf("v[%d] %d %d %d\n", i / 3, vertices[i], vertices[i+1], vertices[i+2]);
-        // file << "v[" << i / 3 << "] " << vertices[i] << " " << vertices[i+1] << " " << vertices[i+2] << "\n";
-    }
-
-    // printf("\nn_verts=%d n_indexes=%d\n", vertices.size(), this->indexes->size());
 }
 
-// Heightmap::Heightmap(const char *map_filename, const char *vertex_shader_filename,
-//                      const char *fragment_shader_filename)
-// {
-//     loadHGTMap(map_filename, heights, coordinates);
-//     this->indexes = indexes;
-
-//     this->vertices_array = VAO();
-//     this->vertices_array.Bind();
-//     this->vertices_buffer = VBO(&this->vertices, this->vertices.size() * sizeof(float));
-
-//     this->indexes_buffer = EBO(this->indexes, this->indexes->size() * sizeof(uint32_t));
-
-//     this->shader = Shader(vertex_shader_filename, fragment_shader_filename);
-
-//     this->vertices_array.link_vbo(this->vertices_buffer, 0, 3);
-
-//     printf("\nn_verts=%d n_indexes=%d\n", vertices.size(), indexes->size());
-// }
 
 void Heightmap::Bind()
 {
@@ -75,48 +41,19 @@ void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, D
     glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(*projection));
     glUniform2f(3, chunk_origin.x, chunk_origin.y);
 
-    glDrawElements(GL_TRIANGLES, indexes->size(), GL_UNSIGNED_INT, 0);
-    // switch (drawing_mode)
-    // {
-    // case TRIANGLES:
-    //     glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 3);
-    //     break;
+    switch (drawing_mode)
+    {
+    case TRIANGLES:
+            glDrawElements(GL_TRIANGLES, indexes->size(), GL_UNSIGNED_INT, 0);
+        break;
 
-    // case WIREFRAME:
-    //     glDrawArrays(GL_LINES, 0, vertices.size() / 3);
-    //     break;
-    // default:
-    //     glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 3);
-    // }
+    case WIREFRAME:
+        glDrawElements(GL_LINES, indexes->size(), GL_UNSIGNED_INT, 0);
+        break;
+    default:
+        glDrawElements(GL_TRIANGLES, indexes->size(), GL_UNSIGNED_INT, 0);
+    }
 }
-
-// bool Heightmap::loadHGTMap(const char* map_filename, std::vector<uint16_t> &heights, std::vector<coordinate_t> &coordinates)
-// {
-//     map_loader::load_heightmap(heights, coordinates, const_cast<char*>(map_filename));
-// // nic
-
-//     printf("Loaded %dx%d points.\n", heights.size(), coordinates.size());
-
-//     for (int i = 0; i < heights.size(); i++)
-//     {
-//         this->vertices.push_back((float)coordinates[i].latitude);
-
-//         /* Clamp incorrect height data to 0. */
-//         if (heights[i] > 8000)
-//             this->vertices.push_back(0.0);
-//         else
-//             this->vertices.push_back((float)heights[i] * map_scale);
-        
-        
-//         this->vertices.push_back((float)coordinates[i].longitude);
-//     }
-//     printf("Loaded %d points to vertices.\n", vertices.size());
-
-//     // calculate_indexes(indexes);
-
-
-//     // printf("n_indexes = %d\n", indexes->size());
-// }
 
 bool Heightmap::loadHGTMap(const char* map_filename, std::vector<int16_t> &vertices, glm::vec2 &chunk_origin)
 {
@@ -144,9 +81,6 @@ bool Heightmap::loadHGTMap(const char* map_filename, std::vector<int16_t> &verti
 
     chunk_origin = glm::vec2(latitude, longitude);
 
-    // std::cout << fname << " N" << latitude << " E" << longitude << "\n";
-
-    // std::cout << "dupa\n";
     printf("\033[92mLoaded %ld/%ld points to vertices [%ld bytes].\n\033[0m", vertices.size(), 1201*1201*3, vertices.size() * sizeof(int16_t));
 }
 
@@ -163,7 +97,7 @@ void Heightmap::calculate_indexes(std::vector<uint> &indexes)
 {
     int n_rows = 1201;
     int step = 10;
-    
+
     for (uint i = 0; i < n_rows - step; i += step)
     {
         for (uint j = 0; j < n_rows - step; j += step)
@@ -177,5 +111,4 @@ void Heightmap::calculate_indexes(std::vector<uint> &indexes)
             indexes.push_back((i + step) * n_rows + j);
         }
     }
-    
 }

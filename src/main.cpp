@@ -10,6 +10,8 @@
 #include "ebo.h"
 #include "camera.h"
 #include "heightmap.h"
+#include "drawable.h"
+#include "sphere.h"
 
 #include <GLFW/glfw3.h>
 
@@ -244,7 +246,7 @@ int main(int argc, char *argv[])
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
 	// Accept fragment if it closer to the player_camera than the former one
-	// glDepthFunc(GL_LESS);
+	glDepthFunc(GL_LESS);
 	// glEnable(GL_CULL_FACE);
 	// glCullFace(GL_FRONT);
 	// glFrontFace(GL_CCW);
@@ -258,14 +260,11 @@ int main(int argc, char *argv[])
 	std::vector<std::string> subdirectories_list;
 
 
-	map_loader::get_files_list_by_extension(map_list_M34, "maps/M34", "maps", "hgt");
+	// map_loader::get_files_list_by_extension(map_list_M34, "maps/M34", "maps", "hgt");
 
-	map_loader::get_subdirectories_list(subdirectories_list, "maps");
+	// map_loader::get_subdirectories_list(subdirectories_list, "maps");
 
-	// for (auto dirname : subdirectories_list)
-	// {
-		// std::cout << dirname << "\n";
-	// }
+
 
 	double load_start = glfwGetTime();
 
@@ -277,7 +276,7 @@ int main(int argc, char *argv[])
 		for(std::string mapfilename : mapfiles_list)
 		{
 			std::cout << "\nCreating renderer for " << mapfilename << "\n";
-			Heightmap hmap(mapfilename.c_str(), "shaders/default.vert", "shaders/default.frag", &indexes);
+			Heightmap hmap(mapfilename.c_str(), "shaders/heightmapECEF.vert", "shaders/heightmapECEF.frag", &indexes);
 			heightmaps.push_back(hmap);
 		}
 	}
@@ -287,33 +286,7 @@ int main(int argc, char *argv[])
 
 	std::cout << "Loaded " << heightmaps.size() << " chunks in " << load_time << "s [" << load_time / heightmaps.size() << "s per chunk]\n";
 
-	// for (std::string map_file : map_list_M34)
-	// {
-	// 	std::cout << "Creating renderer for " << map_file << "\n";
-	// 	Heightmap hmap(map_file.c_str(), "shaders/default.vert", "shaders/default.frag", &indexes);
-	// 	heightmaps.push_back(hmap);
-	// }
-	// std::cout << "\n";
-
-	// map_loader::get_files_list_by_extension(map_list_N34, "maps/N34", "maps", "hgt");
-
-
-	// for (std::string map_file : map_list_N34)
-	// {
-	// 	std::cout << "Creating renderer for " << map_file << "\n";
-	// 	Heightmap hmap(map_file.c_str(), "shaders/default.vert", "shaders/default.frag", &indexes);
-	// 	heightmaps.push_back(hmap);
-	// }
-	// std::cout << "\n";
-
-	// Heightmap heightmap1("maps/M33/N50E017.hgt", "shaders/default.vert", "shaders/default.frag");
-	// heightmaps.push_back(heightmap1);
-	// Heightmap heightmap2("maps/M34/N50E018.hgt", "shaders/default.vert", "shaders/default.frag");
-	// heightmaps.push_back(heightmap2);
-	// Heightmap heightmap3("maps/M34/N50E019.hgt", "shaders/default.vert", "shaders/default.frag");
-	// heightmaps.push_back(heightmap3);
-	// Heightmap heightmap4("maps/M34/N49E019.hgt", "shaders/default.vert", "shaders/default.frag");
-	// heightmaps.push_back(heightmap4);
+	Drawable globe_sphere("data/sphere.obj", "shaders/globe.vert", "shaders/globe.frag");
 
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 view = glm::mat4(1.0f);
@@ -350,7 +323,7 @@ int main(int argc, char *argv[])
 			lastFrame = currentFrame;
 		}
 
-		// printf("camera: %f %f %f\n", player_camera.position.x, player_camera.position.y, player_camera.position.z);
+		printf("camera: %f %f %f\n", player_camera.position.x, player_camera.position.y, player_camera.position.z);
 
 		processInput(window);
 
@@ -361,6 +334,10 @@ int main(int argc, char *argv[])
 		projection = glm::perspective(glm::radians(player_camera.zoom), (float)(SCR_WIDTH) / (float)SCR_HEIGHT, 0.01f, 100.0f);
 
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+
+		// globe_sphere.position = glm::vec3(52.0, 0.0, 18.0);
+		printf("Sphere position: %f %f %f\n", globe_sphere.position.x, globe_sphere.position.y, globe_sphere.position.z);
+
 
 
 		for (Heightmap &heightmap : heightmaps)
@@ -375,6 +352,10 @@ int main(int argc, char *argv[])
 			heightmap.Unbind();
 		}
 
+		globe_sphere.shader.Activate();
+		globe_sphere.Bind();
+		globe_sphere.Draw(&model, &view, &projection, TRIANGLES, false, player_camera.position);
+		globe_sphere.Unbind();
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);

@@ -1,10 +1,11 @@
 #include "drawable.h"
 
 Drawable::Drawable(const char* vertices_data_filename, const char* normals_data_filename,
-               const char* vertex_shader_filename, const char* fragment_shader_filename) 
+               const char* vertex_shader_filename, const char* fragment_shader_filename)
 {
 
     loadData(vertices_data_filename, this->vertices, 1.0);
+    // loadFromObjectFile("data/plane.obj");
     loadData(normals_data_filename, this->normals, 1.0);
 
     this->vertices_array = VAO();
@@ -23,7 +24,7 @@ Drawable::Drawable(const char* vertices_data_filename, const char* normals_data_
 }
 
 Drawable::Drawable(const char* obj_data_filename, const char* vertex_shader_filename,
-               const char* fragment_shader_filename) 
+               const char* fragment_shader_filename)
 {
 
     loadFromObjectFile(obj_data_filename);
@@ -32,16 +33,32 @@ Drawable::Drawable(const char* obj_data_filename, const char* vertex_shader_file
     this->vertices_array.Bind();
     this->vertices_buffer = VBO(&this->vertices, this->vertices.size() * sizeof(float));
 
-    this->normals_array = VAO();
-    this->normals_array.Bind();
-    this->normals_buffer = VBO(&this->normals, this->normals.size() * sizeof(float));
+    // this->normals_array = VAO();
+    // this->normals_array.Bind();
+    // this->normals_buffer = VBO(&this->normals, this->normals.size() * sizeof(float));
 
     this->shader = Shader(vertex_shader_filename, fragment_shader_filename);
     
     this->vertices_array.link_vbo(this->vertices_buffer, 0, 3);
-    this->normals_array.link_vbo(this->normals_buffer, 1, 3);
+    // this->normals_array.link_vbo(this->normals_buffer, 1, 3);
 
     this->position = glm::vec3(0.0, 0.0, 0.0);
+
+    std::ofstream file;
+    file.open("result.txt");
+
+    for (int i = 0; i < vertices.size(); i += 3)
+    {
+        // printf("v %f %f %f\n")
+        file << "v  " << vertices[i] << " " << vertices[i+1] << " " << vertices[i+2] << "\n";
+    }
+
+    for (int i = 0; i < normals.size(); i += 3)
+    {
+        // printf("n %f %f %f\n")
+        file << "vn " << normals[i] << " " << normals[i+1] << " " << normals[i+2] << "\n";
+    }
+    file.close();
 
 }
 
@@ -74,13 +91,13 @@ Drawable::Drawable(const char* obj_data_filename, const char* vertex_shader_file
 void Drawable::Bind()
 {
     this->vertices_array.Bind();
-    this->normals_array.Bind();
+    // this->normals_array.Bind();
 }
 
 void Drawable::Unbind()
 {
     this->vertices_array.Unbind();
-    this->normals_array.Unbind();
+    // this->normals_array.Unbind();
 }
 
 void Drawable::Draw()
@@ -96,13 +113,13 @@ void Drawable::Draw(glm::mat4* model, glm::mat4* view, glm::mat4* projection, DR
 
     // loadUniforms();
 
-    if (transparent)
-    {
-        sortTriangles(camera_position);
-        // this->vertices_buffer.Update(&this->vertices, this->vertices.size() * sizeof(float));
+    // if (transparent)
+    // {
+    //     sortTriangles(camera_position);
+    //     // this->vertices_buffer.Update(&this->vertices, this->vertices.size() * sizeof(float));
         // this->normals_buffer.Update(&this->normals, this->normals.size() * sizeof(float));
     
-    }
+    // }
 
     switch (drawing_mode)
     {

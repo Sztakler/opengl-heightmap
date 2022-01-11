@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 namespace map_loader {
-    /* Populates 'heights' vector with heights (in meters above sea level) from .hgt file 'filename'. 
+    /* Populates 'heights' vector with heights (in meters above sea level) from .hgt file 'filename'.
     * 'filename' parameter is either relative or absolute path to .hgt file.
     */
     // void load_heightmap(std::vector<uint16_t> &heights, std::vector<coordinate_t> &coordinates, char* filename);

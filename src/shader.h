@@ -11,7 +11,7 @@ class Shader
 {
     public:
         GLuint id;
-        
+
     public:
         Shader();
         Shader(const char* vertex_shader_file, const char* fragment_shader_file);

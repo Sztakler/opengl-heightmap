@@ -1,5 +1,5 @@
-#ifndef DRAWABLE_H
-#define DRAWABLE_H
+#ifndef HEIGHTMAP_H
+#define HEIGHTMAP_H
 
 #include "includes.h"
 #include "vao.h"
@@ -13,23 +13,19 @@ class Heightmap
 {
     public:
         VAO vertices_array;
-        
+
         VBO vertices_buffer;
 
         EBO indexes_buffer;
 
         Shader shader;
 
-        // std::vector<float> vertices;
         std::vector<int16_t> vertices;
-        // std::vector<int16_t> heights;
-        // std::vector<uint32_t> indexes;
         std::vector<uint32_t>* indexes;
-        // std::vector<coordinate_t> coordinates;
 
         float map_scale = 0.0001;
         glm::vec2 chunk_origin;
-        
+
     public:
         Heightmap(const char* obj_data_filename, const char* vertex_shader_filename,
                const char* fragment_shader_filename);

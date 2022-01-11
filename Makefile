@@ -12,6 +12,7 @@ OBJ = $(OBJ_DIR)/main.o \
 	$(OBJ_DIR)/ebo.o \
 	$(OBJ_DIR)/camera.o \
 	$(OBJ_DIR)/box.o \
+	$(OBJ_DIR)/sphere.o \
 	$(OBJ_DIR)/heightmap.o \
 	$(OBJ_DIR)/map_loader.o \
 

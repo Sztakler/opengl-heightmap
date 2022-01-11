@@ -24,7 +24,7 @@ void load_heightmap(std::vector<uint16_t> &heights, std::vector<coordinate_t> &c
     // int height = 0;
 
     std::ifstream in_file_stream(filename, std::ios::in | std::ios::binary);
-    
+
     if (!in_file_stream)
     {
         std::cout << "Couldn't open file " << filename;
@@ -47,7 +47,7 @@ void load_heightmap(std::vector<uint16_t> &heights, std::vector<coordinate_t> &c
         printf("all characters read successfully.\n");
     else
         printf("error: only %ld could be read.", in_file_stream.gcount());
-    
+
     in_file_stream.close();
 
     char filename_copy[50];
