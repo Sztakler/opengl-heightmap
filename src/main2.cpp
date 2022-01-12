@@ -11,6 +11,7 @@
 #include "camera.h"
 #include "heightmap.h"
 #include "drawable.h"
+#include "sphere.h"
 
 #include <GLFW/glfw3.h>
 
@@ -66,7 +67,7 @@ int lod = 0;
 
 DRAWING_MODE drawing_mode = TRIANGLES;
 
-Camera player_camera(glm::vec3(0.0f, 0.0f, 0.0f));
+Camera player_camera(glm::vec3(53.0f, 0.0f, 18.0f));
 Camera static_camera(glm::vec3(-20.0f, 10.0f, 20.0f));
 Camera *current_camera = &player_camera;
 CAMERA camera_index = PLAYER_CAMERA;
@@ -253,41 +254,39 @@ int main(int argc, char *argv[])
 	std::vector<uint> indexes;
 	calculate_indexes(indexes);
 
-	std::vector<Heightmap*> heightmaps;
-	// std::vector<std::string> map_list_M34;
-	// std::vector<std::string> map_list_N34;
+	std::vector<Heightmap> heightmaps;
+	std::vector<std::string> map_list_M34;
+	std::vector<std::string> map_list_N34;
 	std::vector<std::string> subdirectories_list;
 
 
 	// map_loader::get_files_list_by_extension(map_list_M34, "maps/M34", "maps", "hgt");
 
-	map_loader::get_subdirectories_list(subdirectories_list, "maps");
+	// map_loader::get_subdirectories_list(subdirectories_list, "maps");
 
 
 
 	double load_start = glfwGetTime();
-// 
+
 	for(std::string subdirectory_name : subdirectories_list)
 	{
 		std::vector<std::string> mapfiles_list;
 		map_loader::get_files_list_by_extension(mapfiles_list, const_cast<char*>(subdirectory_name.c_str()), "maps", "hgt");
-// 
+
 		for(std::string mapfilename : mapfiles_list)
 		{
 			std::cout << "\nCreating renderer for " << mapfilename << "\n";
-			Heightmap* hmap = new Heightmap(mapfilename.c_str(), "shaders/heightmapECEF.vert", "shaders/heightmapECEF.frag", &indexes);
+			Heightmap hmap(mapfilename.c_str(), "shaders/heightmapECEF.vert", "shaders/heightmapECEF.frag", &indexes);
 			heightmaps.push_back(hmap);
 		}
 	}
-// 
+
 	double load_end = glfwGetTime();
 	double load_time = load_end - load_start;
-// 
+
 	std::cout << "Loaded " << heightmaps.size() << " chunks in " << load_time << "s [" << load_time / heightmaps.size() << "s per chunk]\n";
 
-	Drawable sphere("data/sphere.obj", "shaders/globe.vert", "shaders/globe.frag");
-	// Sphere sphere(1.0f, 36, 18);
-	sphere.position = player_camera.position;
+	Drawable globe_sphere("data/sphere.obj", "shaders/globe.vert", "shaders/globe.frag");
 
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 view = glm::mat4(1.0f);
@@ -337,26 +336,26 @@ int main(int argc, char *argv[])
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
 		// globe_sphere.position = glm::vec3(52.0, 0.0, 18.0);
-		printf("Sphere position: %f %f %f\n", sphere.position.x, sphere.position.y, sphere.position.z);
+		printf("Sphere position: %f %f %f\n", globe_sphere.position.x, globe_sphere.position.y, globe_sphere.position.z);
 
 
 
-		for (Heightmap* heightmap : heightmaps)
+		for (Heightmap &heightmap : heightmaps)
 		{
 			// std::cout << "activating shader\n";
-			heightmap->shader.Activate();
+			heightmap.shader.Activate();
 			// std::cout << "binding\n";
-			heightmap->Bind();
+			heightmap.Bind();
 			// std::cout << "drawing\n";
-			heightmap->Draw(&model, &view, &projection, TRIANGLES, false, player_camera.position);
+			heightmap.Draw(&model, &view, &projection, TRIANGLES, false, player_camera.position);
 			// std::cout << "unbinding\n";
-			heightmap->Unbind();
+			heightmap.Unbind();
 		}
 
-		sphere.shader.Activate();
-		sphere.Bind();
-		sphere.Draw(&model, &view, &projection, TRIANGLES, false, player_camera.position);
-		sphere.Unbind();
+		globe_sphere.shader.Activate();
+		globe_sphere.Bind();
+		globe_sphere.Draw(&model, &view, &projection, TRIANGLES, false, player_camera.position);
+		globe_sphere.Unbind();
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);

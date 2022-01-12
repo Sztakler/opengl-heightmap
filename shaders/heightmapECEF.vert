@@ -17,7 +17,7 @@ void main()
 {
     float radius = 10;
     float delta = 1.0 / 1201.0;
-    scale = 0.0001;
+    scale = 0.00001;
 
     /* 2D map coordinates */
     vec3 pos = vec3( origin.x  - aPosition.x * delta,
@@ -41,12 +41,16 @@ void main()
 
     alt = altitude;
 
-    float f = 0; // flattening
-    float ls = atan( (1 - f) * (1 - f) * tan(latitude)); // lambda
+    // float f = 0.5; // flattening
+    // float ls = atan( (1 - f) * (1 - f) * tan(latitude)); // lambda
 
-    float x = radius * cos(ls) * cos(longitude) + altitude * cos(latitude) * cos(longitude);
-    float y = radius * cos(ls) * sin(longitude) + altitude * cos(latitude) * sin(longitude);
-    float z = radius * sin(ls) + altitude * sin(latitude);
+    // float x = radius * cos(latitude) * cos(longitude) + altitude * cos(latitude) * cos(longitude);
+    // float y = radius * cos(latitude) * sin(longitude) + altitude * cos(latitude) * sin(longitude);
+    // float z = radius * sin(latitude) + altitude * sin(latitude);
+
+    float x = (radius + altitude) * cos(latitude) * cos(longitude);
+    float y = (radius + altitude) * cos(latitude) * sin(longitude);
+    float z = (radius + altitude) * sin(latitude) * sin(latitude);
 
     positionECEF = vec3(x, y, z);
 

@@ -15,7 +15,7 @@ Heightmap::Heightmap(const char *map_filename, const char *vertex_shader_filenam
 
     this->shader = Shader(vertex_shader_filename, fragment_shader_filename);
 
-    this->vertices_array.link_vbo(this->vertices_buffer, 0, 3);
+    this->vertices_array.link_vbo(this->vertices_buffer, 0, 3, GL_SHORT);
 }
 
 
