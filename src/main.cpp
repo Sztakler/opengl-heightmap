@@ -14,11 +14,10 @@
 
 #include <GLFW/glfw3.h>
 
-void calculate_indexes(std::vector<uint> &indexes)
+void calculate_indexes(std::vector<uint> &indexes, uint step)
 {
     int n_rows = 1201;
-    int step = 10;
-    
+
     for (uint i = 0; i < n_rows - step; i += step)
     {
         for (uint j = 0; j < n_rows - step; j += step)
@@ -31,7 +30,7 @@ void calculate_indexes(std::vector<uint> &indexes)
             indexes.push_back((i + step) * n_rows + j + step);
             indexes.push_back((i + step) * n_rows + j);
         }
-    } 
+    }
 }
 
 void windowResizeHandler(GLFWwindow *window, int width, int height)
@@ -63,10 +62,11 @@ float pitch = 0.0f;
 float yaw = -90.0f;
 
 int lod = 0;
+int lod_change = 0;
 
 DRAWING_MODE drawing_mode = TRIANGLES;
 
-Camera player_camera(glm::vec3(0.0f, 0.0f, 0.0f));
+Camera player_camera(glm::vec3(5.0f, 0.0f, 15.0f));
 Camera static_camera(glm::vec3(-20.0f, 10.0f, 20.0f));
 Camera *current_camera = &player_camera;
 CAMERA camera_index = PLAYER_CAMERA;
@@ -107,25 +107,40 @@ void processInput(GLFWwindow *window)
 		glfwSetWindowShouldClose(window, true);
 
 	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+	{
 		lod = 1;
-	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod_change = 1;
+    	// glBufferData(GL_ELEMENT_ARRAY_BUFFER,  indexes[3]->size(), this->indexes[3], GL_STATIC_DRAW);
+	}
+	if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+	{
 		lod = 2;
-	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod_change = 1;
+	}
+	if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+	{
 		lod = 3;
-	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod_change = 1;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
+	{
 		lod = 4;
-	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod_change = 1;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
+	{
 		lod = 5;
-	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-		lod = 6;
-	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-		lod = 7;
-	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-		lod = 8;
-	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-		lod = 9;
-	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		lod_change = 1;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS)
+	{
 		lod = 0;
+		lod_change = 1;
+	}
+
 
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -185,24 +200,38 @@ void processInput(GLFWwindow *window)
 
 int main(int argc, char *argv[])
 {
-	int seed;
-	int board_size;
+	char* map_directory;
+	std::pair<int, int> latitude_range = {1, 0};
+	std::pair<int, int> longitude_range = {1, 0};
 
-	if (argc < 2)
+	printf("argc = %d\n", argc);
+
+	if (argc == 2)
 	{
-		seed = time(0);
-		board_size = 10;
+		// seed = atoi(argv[1]);
+		// board_size = 10;
+		map_directory = argv[1];
 	}
-	else if (argc == 2)
+	else if (argc == 8)
 	{
-		seed = atoi(argv[1]);
-		board_size = 10;
+		map_directory = argv[1];
+		latitude_range.first = atoi(argv[3]);
+		latitude_range.second = atoi(argv[4]);
+
+		longitude_range.first = atoi(argv[6]);
+		longitude_range.second = atoi(argv[7]);
 	}
 	else
 	{
-		seed = atoi(argv[1]);
-		board_size = atoi(argv[2]);
+		map_directory = "maps";
 	}
+
+	for (int i = 0; i < argc; i++)
+	{
+		printf("%s ", argv[i]);
+	}
+	printf("\n");
+
 
 	// Initialize GLFW
 	glewExperimental = true; // Needed for core profile
@@ -250,8 +279,19 @@ int main(int argc, char *argv[])
 	// glCullFace(GL_FRONT);
 	// glFrontFace(GL_CCW);
 
-	std::vector<uint> indexes;
-	calculate_indexes(indexes);
+	// std::vector<std::vector<uint32_t>*> indexes_lists;
+	// // calculate_indexes(indexes);
+	// for (uint32_t i = 0; i < 6; i++)
+	// {
+	// 	std::vector<uint32_t>* indexes = new std::vector<uint32_t>;
+	// 	indexes_lists.push_back(indexes);
+
+	// 	calculate_indexes(indexes_lists[i], 1 << i);
+	// 	printf("[%d] %d %d\n", i , indexes_lists[i]->size(), 1 << i);
+	// }
+
+	std::vector<uint32_t> indexes;
+	calculate_indexes(indexes, 10);
 
 	std::vector<Heightmap*> heightmaps;
 	// std::vector<std::string> map_list_M34;
@@ -261,28 +301,34 @@ int main(int argc, char *argv[])
 
 	// map_loader::get_files_list_by_extension(map_list_M34, "maps/M34", "maps", "hgt");
 
-	map_loader::get_subdirectories_list(subdirectories_list, "maps");
+	map_loader::get_subdirectories_list(subdirectories_list, map_directory);
 
+	if (subdirectories_list.size() == 0)
+	{
+		subdirectories_list.push_back(map_directory);
+	}
 
 
 	double load_start = glfwGetTime();
-// 
 	for(std::string subdirectory_name : subdirectories_list)
 	{
+		std::cout << "subdirectory " << subdirectory_name << "\n";
 		std::vector<std::string> mapfiles_list;
-		map_loader::get_files_list_by_extension(mapfiles_list, const_cast<char*>(subdirectory_name.c_str()), "maps", "hgt");
-// 
+		map_loader::get_files_list_by_extension(mapfiles_list, const_cast<char*>(subdirectory_name.c_str()), "hgt");
+
+	std::cout << " dupa\n";
 		for(std::string mapfilename : mapfiles_list)
 		{
 			std::cout << "\nCreating renderer for " << mapfilename << "\n";
-			Heightmap* hmap = new Heightmap(mapfilename.c_str(), "shaders/heightmapECEF.vert", "shaders/heightmapECEF.frag", &indexes);
+			Heightmap* hmap = new Heightmap(mapfilename.c_str(), "shaders/heightmapECEF.vert", "shaders/heightmapECEF.frag", &indexes,
+											latitude_range, longitude_range);
 			heightmaps.push_back(hmap);
 		}
 	}
-// 
+
 	double load_end = glfwGetTime();
 	double load_time = load_end - load_start;
-// 
+
 	std::cout << "Loaded " << heightmaps.size() << " chunks in " << load_time << "s [" << load_time / heightmaps.size() << "s per chunk]\n";
 
 	Drawable sphere("data/sphere.obj", "shaders/globe.vert", "shaders/globe.frag");
@@ -300,7 +346,7 @@ int main(int argc, char *argv[])
 	float lastFrame = 0.0f; // Time of last frame
 
 
-	player_camera.front = glm::vec3(-0.5, -0.5, -0.5);
+	player_camera.front = glm::vec3(0, 0, 0);
 
 
 	unsigned int counter = 0;
@@ -324,7 +370,7 @@ int main(int argc, char *argv[])
 			lastFrame = currentFrame;
 		}
 
-		printf("camera: %f %f %f\n", player_camera.position.x, player_camera.position.y, player_camera.position.z);
+		// printf("camera: %f %f %f\n", player_camera.position.x, player_camera.position.y, player_camera.position.z);
 
 		processInput(window);
 
@@ -337,21 +383,29 @@ int main(int argc, char *argv[])
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
 		// globe_sphere.position = glm::vec3(52.0, 0.0, 18.0);
-		printf("Sphere position: %f %f %f\n", sphere.position.x, sphere.position.y, sphere.position.z);
+		// printf("Sphere position: %f %f %f\n", sphere.position.x, sphere.position.y, sphere.position.z);
 
-
+		// printf("lod = %d\n", lod);
 
 		for (Heightmap* heightmap : heightmaps)
 		{
+			// if (lod_change)
+			// {
+    		// 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, heightmap->indexes_buffer.id);
+			// 	// glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indexes_lists[lod]->size() * sizeof(uint32_t), indexes_lists[lod]);
+    		// 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, heightmap->indexes[lod]->size() * sizeof(uint32_t), heightmap->indexes[lod], GL_STATIC_DRAW);
+			// }
 			// std::cout << "activating shader\n";
 			heightmap->shader.Activate();
 			// std::cout << "binding\n";
 			heightmap->Bind();
+
 			// std::cout << "drawing\n";
-			heightmap->Draw(&model, &view, &projection, TRIANGLES, false, player_camera.position);
+			heightmap->Draw(&model, &view, &projection, TRIANGLES, lod);
 			// std::cout << "unbinding\n";
 			heightmap->Unbind();
 		}
+		lod_change = 0;
 
 		sphere.shader.Activate();
 		sphere.Bind();

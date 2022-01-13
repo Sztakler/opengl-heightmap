@@ -16,6 +16,27 @@ namespace map_loader
         std::string line;
         std::string word;
 
+
+        char filename_copy[50];
+        strcpy(filename_copy, filename);
+        const char delim[2] = "/";
+
+        char *token;
+        std::vector<char *> tokens;
+        token = strtok(filename_copy, delim);
+
+        while (token != NULL)
+        {
+            tokens.push_back(token);
+            token = strtok(NULL, delim);
+        }
+
+        std::string fname(tokens.back());
+
+        double latitude = (double)atoi(fname.substr(1, 2).c_str()) + 1; // add 1, because latitude from filename is actually lower left corner of square
+        double longitude = (double)atoi(fname.substr(4, 6).c_str());
+
+
         std::ifstream in_file_stream(filename, std::ios::in | std::ios::binary);
 
         if (!in_file_stream)
@@ -44,26 +65,8 @@ namespace map_loader
 
         in_file_stream.close();
 
-        char filename_copy[50];
-        strcpy(filename_copy, filename);
-        const char delim[2] = "/";
-
-        char *token;
-        std::vector<char *> tokens;
-        token = strtok(filename_copy, delim);
-
-        while (token != NULL)
-        {
-            tokens.push_back(token);
-            token = strtok(NULL, delim);
-        }
-
-        std::string fname(tokens.back());
-
-        double latitude = (double)atoi(fname.substr(1, 2).c_str()) + 1; // add 1, because latitude from filename is actually lower left corner of square
-        double origin_longitude = (double)atoi(fname.substr(4, 6).c_str());
-
-        double longitude = origin_longitude;
+        // std::cout << fname << " " << fname.substr(0, 1) << " " << fname.substr(3, 1).compare("E") << "\n";
+        // std::string longitude_letter = fname.substr
 
         int16_t rows = 0;
         int16_t cols = 0;
@@ -91,9 +94,19 @@ namespace map_loader
                 uint8_t byte_low = bytes[k + 1];
                 int16_t height = (byte_high << 8) + byte_low;
 
-                vertices.push_back(i);
+                // printf("[%d %d] %d\n", i, j, height);
+
+                if (!fname.substr(0, 1).compare("N"))
+                    vertices.push_back(i);
+                else
+                    vertices.push_back(i);
+
                 vertices.push_back(height);
-                vertices.push_back(j / 2);
+
+                if (!fname.substr(3, 1).compare("E"))
+                    vertices.push_back(j / 2);
+                else
+                    vertices.push_back(j / 2);
             }
         }
     }
@@ -125,8 +138,23 @@ namespace map_loader
         closedir(directory);
     }
 
-    void get_files_list_by_extension(std::vector<std::string> &files_list, char *directory_name, char *parent_directory, char *extension)
-    {
+    void get_files_list_by_extension(std::vector<std::string> &files_list, char *directory_name, char *extension)
+    {   
+        /* Copy original string, because strtok may destroy it. */
+        char dirname[50];
+        strcpy(dirname, directory_name);
+        /* Check whether this isn't directory but already a file. */
+        char *ext = strtok(dirname, ".");
+        ext = strtok(NULL, ".");
+
+        if (ext && strcmp(extension, ext) == 0)
+        {
+            std::string path(directory_name);
+            std::cout << path << "\n";
+            files_list.push_back(path);
+            return; // If directory_name is a file, then it's the only file to add to list.
+        }
+
         DIR *directory = opendir(directory_name);
         struct dirent *entry;
 
@@ -146,7 +174,8 @@ namespace map_loader
 
             char *ext = strtok(filename, ".");
             ext = strtok(NULL, ".");
-            if (strcmp(extension, ext) == 0)
+            printf("dupa %s\n", ext);
+            if (ext && strcmp(extension, ext) == 0)
             {
                 std::string path(directory_name);
                 path.append("/");

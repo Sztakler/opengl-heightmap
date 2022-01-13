@@ -17,7 +17,7 @@ Drawable::Drawable(const char* vertices_data_filename, const char* normals_data_
     this->normals_buffer = VBO(&this->normals, this->normals.size() * sizeof(float));
 
     this->shader = Shader(vertex_shader_filename, fragment_shader_filename);
-    
+
     this->vertices_array.link_vbo(this->vertices_buffer, 0, 3);
     this->normals_array.link_vbo(this->normals_buffer, 1, 3);
 

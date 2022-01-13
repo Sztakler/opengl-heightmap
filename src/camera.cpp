@@ -1,7 +1,7 @@
 #include "camera.h"
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) :
-    front(glm::vec3(-0.5f, -0.5f, -0.5f)),
+    front(glm::vec3(0, 0, 0)),
     movement_speed(SPEED),
     mouse_sensitivity(SENSITIVITY),
     zoom(ZOOM)
@@ -16,7 +16,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) :
 
 
 Camera::Camera(float pos_x, float pos_y, float pos_z, float up_x, float up_y, float up_z, float yaw, float pitch) :
-    front(glm::vec3(-0.5f, -0.5f, -0.5f)),
+    front(glm::vec3(0, 0, 0)),
     movement_speed(SPEED),
     mouse_sensitivity(SENSITIVITY),
     zoom(ZOOM)
@@ -42,7 +42,7 @@ void Camera::processKeyboard(Camera_Movement direction, float delta_time)
 
     if (direction == FORWARD)
     {
-        position += front * velocity; 
+        position += front * velocity;
         previous_moves.push_back(FORWARD);
     }
     if (direction == BACKWARD)

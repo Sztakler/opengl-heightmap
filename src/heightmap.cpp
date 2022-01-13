@@ -1,9 +1,10 @@
 #include "heightmap.h"
 
 Heightmap::Heightmap(const char *map_filename, const char *vertex_shader_filename,
-                     const char *fragment_shader_filename, std::vector<uint32_t>* indexes)
+                     const char *fragment_shader_filename, std::vector<uint32_t>* indexes,
+                     std::pair<int, int> latitude_range, std::pair<int, int> longitude_range)
 {
-    loadHGTMap(map_filename, this->vertices, this->chunk_origin);
+    loadHGTMap(map_filename, this->vertices, this->chunk_origin, latitude_range, longitude_range);
     this->indexes = indexes;
 
 
@@ -22,11 +23,15 @@ Heightmap::Heightmap(const char *map_filename, const char *vertex_shader_filenam
 void Heightmap::Bind()
 {
     this->vertices_array.Bind();
+    this->vertices_buffer.Bind();
+    this->indexes_buffer.Bind();
 }
 
 void Heightmap::Unbind()
 {
     this->vertices_array.Unbind();
+    this->vertices_buffer.Unbind();
+    this->indexes_buffer.Unbind();
 }
 
 void Heightmap::Draw()
@@ -34,13 +39,17 @@ void Heightmap::Draw()
     glDrawArrays(GL_TRIANGLE_FAN, 0, vertices.size() / 3);
 }
 
-void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, DRAWING_MODE drawing_mode, bool transparent, glm::vec3 camera_position)
+void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, DRAWING_MODE drawing_mode, int lod)
 {
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->indexes_buffer.id);
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indexes[3]->size(), this->indexes[3], GL_STATIC_DRAW);
+
+
     glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(*model));
     glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(*view));
     glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(*projection));
     glUniform2f(3, chunk_origin.x, chunk_origin.y);
-
+    // printf("lod = %d, size = %d\n", lod, indexes[lod]->size());
     switch (drawing_mode)
     {
     case TRIANGLES:
@@ -55,10 +64,9 @@ void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, D
     }
 }
 
-bool Heightmap::loadHGTMap(const char* map_filename, std::vector<int16_t> &vertices, glm::vec2 &chunk_origin)
+bool Heightmap::loadHGTMap(const char* map_filename, std::vector<int16_t> &vertices, glm::vec2 &chunk_origin,
+                           std::pair<int, int> latitude_range, std::pair<int, int> longitude_range)
 {
-    map_loader::load_heightmap(vertices, const_cast<char*>(map_filename));
-
     char filename_copy[50];
     // std::cout << "Map " << map_filename << "\n";
     strcpy(filename_copy, map_filename);
@@ -76,12 +84,56 @@ bool Heightmap::loadHGTMap(const char* map_filename, std::vector<int16_t> &verti
 
     std::string fname(tokens.back());
 
-    float latitude = (float)atoi(fname.substr(1, 2).c_str()) + 1; // add 1, because latitude from filename is actually lower left corner of square
-    float longitude = (float)atoi(fname.substr(4, 6).c_str());
+    int latitude = atoi(fname.substr(1, 2).c_str());
+    int longitude = atoi(fname.substr(4, 3).c_str());
 
-    chunk_origin = glm::vec2(latitude, longitude);
+
+    if (!fname.substr(0, 1).compare("S"))
+        latitude = -latitude;
+
+    if (!fname.substr(3, 1).compare("W"))
+        longitude = -longitude;
+
+    // std::cout << fname.substr(1, 2).c_str() << " " << fname.substr(4, 3).c_str();
+    // printf(" chunk %d %d    -lat %d %d -lon %d %d\n", latitude, longitude, latitude_range.first, latitude_range.second, longitude_range.first, longitude_range.second);
+
+    // /* If user defined latitude range then discard data out of this range. */
+
+    // printf("sig lat=%d lat0=%d lat1=%d lon=%d lon0=%d lon1=%d\n", latitude, latitude_range.first, latitude_range.second, longitude, longitude_range.first, longitude_range.second);
+    // printf("abs lat=%d lat0=%d lat1=%d lon=%d lon0=%d lon1=%d\n", abs(latitude), abs(latitude_range.first), abs(latitude_range.second), abs(longitude), abs(longitude_range.first), abs(longitude_range.second));
+
+    // if (abs(latitude_range.first) <= abs(latitude_range.second))
+    // {
+    //     if ( (abs(latitude) < abs(latitude_range.first)) || (abs(latitude) > abs(latitude_range.second)) )
+    //     {
+    //         printf("alat=%d alat0=%d alat1=%d alon=%d alon0=%d alon1=%d\n", abs(latitude), abs(latitude_range.first), abs(latitude_range.second), abs(longitude), abs(longitude_range.first), abs(longitude_range.second));
+    //         printf("[alat=%d < alat0=%d] %d  [alat=%d > alat1=%d] %d ==> OR = %d\n", abs(latitude), abs(latitude_range.first), abs(latitude) < abs(latitude_range.first), abs(latitude), abs(latitude_range.second), abs(latitude) > abs(latitude_range.second), (abs(latitude) < abs(latitude_range.first)) || (abs(latitude) > abs(latitude_range.second)) );
+    //         printf("\033[91mWRONG\033[0m\n");
+    //         return false;
+    //     }
+    // }
+
+    // /* If user defined longitude range then discard data out of this range. */
+    // if (abs(longitude_range.first) <= abs(longitude_range.second))
+    // {
+    //     if ( (abs(longitude) < abs(longitude_range.first)) || (abs(longitude) > abs(longitude_range.second)) )
+    //     {
+    //         printf("along=%d along0=%d along1=%d alon=%d alon0=%d alon1=%d\n", abs(longitude), abs(longitude_range.first), abs(longitude_range.second), abs(longitude), abs(longitude_range.first), abs(longitude_range.second));
+    //         printf("[along=%d < along0=%d] %d  [along=%d > along1=%d] %d ==> OR = %d\n", abs(longitude), abs(longitude_range.first), abs(longitude) < abs(longitude_range.first), abs(longitude), abs(longitude_range.second), abs(longitude) > abs(longitude_range.second), (abs(longitude) < abs(longitude_range.first)) || (abs(longitude) < abs(longitude_range.second)));
+    //         printf("\033[91mWRONG\033[0m\n");
+    //         return false;
+    //     }
+    // }
+
+    /* If range isn't specified or data is withing this range, then load data normally. */
+
+    chunk_origin = glm::vec2((float)(latitude+1), (float)longitude); // add 1, because latitude from filename is actually lower left corner of square
+
+    map_loader::load_heightmap(vertices, const_cast<char*>(map_filename));
 
     printf("\033[92mLoaded %ld/%ld points to vertices [%ld bytes].\n\033[0m", vertices.size(), 1201*1201*3, vertices.size() * sizeof(int16_t));
+
+    return true;
 }
 
 bool Heightmap::replace(std::string &str, const std::string &from, const std::string &to)
