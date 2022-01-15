@@ -117,7 +117,7 @@ void Camera::updateCameraVectors()
 void Camera::undoMove(float delta_time)
 {
     for (Camera_Movement direction : previous_moves)
-    {   
+    {
         float velocity = movement_speed * delta_time;
         switch (direction)
         {

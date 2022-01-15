@@ -4,39 +4,39 @@ Heightmap::Heightmap(const char *map_filename, const char *vertex_shader_filenam
                      const char *fragment_shader_filename, std::vector<uint32_t>* indexes,
                      std::pair<int, int> latitude_range, std::pair<int, int> longitude_range)
 {
-    loadHGTMap(map_filename, this->vertices, this->chunk_origin, latitude_range, longitude_range);
+    loadHGTMap(map_filename, this->heights, this->chunk_origin, latitude_range, longitude_range);
     this->indexes = indexes;
 
 
-    this->vertices_array = VAO();
-    this->vertices_array.Bind();
-    this->vertices_buffer = VBO(&this->vertices, this->vertices.size() * sizeof(int16_t));
+    this->heights_array = VAO();
+    this->heights_array.Bind();
+    this->heights_buffer = VBO(&this->heights, this->heights.size() * sizeof(int16_t));
 
     this->indexes_buffer = EBO(this->indexes, this->indexes->size() * sizeof(uint32_t));
 
     this->shader = Shader(vertex_shader_filename, fragment_shader_filename);
 
-    this->vertices_array.link_vbo(this->vertices_buffer, 0, 3, GL_SHORT);
+    this->heights_array.link_vbo(this->heights_buffer, 0, 1, GL_SHORT);
 }
 
 
 void Heightmap::Bind()
 {
-    this->vertices_array.Bind();
-    this->vertices_buffer.Bind();
+    this->heights_array.Bind();
+    this->heights_buffer.Bind();
     this->indexes_buffer.Bind();
 }
 
 void Heightmap::Unbind()
 {
-    this->vertices_array.Unbind();
-    this->vertices_buffer.Unbind();
+    this->heights_array.Unbind();
+    this->heights_buffer.Unbind();
     this->indexes_buffer.Unbind();
 }
 
 void Heightmap::Draw()
 {
-    glDrawArrays(GL_TRIANGLE_FAN, 0, vertices.size() / 3);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, heights.size());
 }
 
 void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, DRAWING_MODE drawing_mode, int lod)
@@ -53,6 +53,7 @@ void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, D
     switch (drawing_mode)
     {
     case TRIANGLES:
+            // printf("DRAW TRIANGLES %d indexes\n", indexes->size());
             glDrawElements(GL_TRIANGLES, indexes->size(), GL_UNSIGNED_INT, 0);
         break;
 
@@ -64,7 +65,7 @@ void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, D
     }
 }
 
-bool Heightmap::loadHGTMap(const char* map_filename, std::vector<int16_t> &vertices, glm::vec2 &chunk_origin,
+bool Heightmap::loadHGTMap(const char* map_filename, std::vector<int16_t> &heights, glm::vec2 &chunk_origin,
                            std::pair<int, int> latitude_range, std::pair<int, int> longitude_range)
 {
     char filename_copy[50];
@@ -129,9 +130,9 @@ bool Heightmap::loadHGTMap(const char* map_filename, std::vector<int16_t> &verti
 
     chunk_origin = glm::vec2((float)(latitude+1), (float)longitude); // add 1, because latitude from filename is actually lower left corner of square
 
-    map_loader::load_heightmap(vertices, const_cast<char*>(map_filename));
+    map_loader::load_heightmap(heights, const_cast<char*>(map_filename));
 
-    printf("\033[92mLoaded %ld/%ld points to vertices [%ld bytes].\n\033[0m", vertices.size(), 1201*1201*3, vertices.size() * sizeof(int16_t));
+    // printf("\033[92mLoaded %ld/%ld points to heights [%ld bytes].\n\033[0m", heights.size(), 1201*1201*3, heights.size() * sizeof(int16_t));
 
     return true;
 }

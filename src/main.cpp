@@ -9,6 +9,7 @@
 #include "vbo.h"
 #include "ebo.h"
 #include "camera.h"
+#include "arcball_camera.h"
 #include "heightmap.h"
 #include "drawable.h"
 
@@ -67,6 +68,7 @@ int lod_change = 0;
 DRAWING_MODE drawing_mode = TRIANGLES;
 
 Camera player_camera(glm::vec3(5.0f, 0.0f, 15.0f));
+ArcballCamera arcball_camera(glm::vec3(15.0, 0.0, 15.0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), -90.0f, 0.0f);
 Camera static_camera(glm::vec3(-20.0f, 10.0f, 20.0f));
 Camera *current_camera = &player_camera;
 CAMERA camera_index = PLAYER_CAMERA;
@@ -94,6 +96,7 @@ void mouse_callback(GLFWwindow *window, double x_pos, double y_pos)
 	last_y = y_pos;
 
 	player_camera.processMouseMovement(x_offset, y_offset);
+	arcball_camera.processMouseMovement(-x_offset, y_offset, SCR_WIDTH, SCR_HEIGHT);
 }
 
 void scroll_callback(GLFWwindow *window, double x_offset, double y_offset)
@@ -134,6 +137,16 @@ void processInput(GLFWwindow *window)
 		lod = 5;
 		lod_change = 1;
 	}
+	if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
+	{
+		lod = 6;
+		lod_change = 1;
+	}
+	if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
+	{
+		lod = 7;
+		lod_change = 1;
+	}
 
 	if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS)
 	{
@@ -157,14 +170,25 @@ void processInput(GLFWwindow *window)
 		player_camera.processKeyboard(DOWN, delta_time);
 
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	{
 		player_camera.processMouseMovement(0.0, 10.0);
+		arcball_camera.processKeyboard(0.0, 10.0);
+	}
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	{
 		player_camera.processMouseMovement(0.0, -10.0);
+		arcball_camera.processKeyboard(0.0, -10.0);
+	}
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+	{
 		player_camera.processMouseMovement(-10.0, 0.0);
+		arcball_camera.processKeyboard(-10.0, 0.0);
+	}
 	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+	{
 		player_camera.processMouseMovement(10.0, 0.0);
-
+		arcball_camera.processKeyboard(10.0, 0.0);
+	}
 	if ((glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS) && (last_change > 0.3))
 	{
 		if (drawing_mode == TRIANGLES)
@@ -279,27 +303,19 @@ int main(int argc, char *argv[])
 	// glCullFace(GL_FRONT);
 	// glFrontFace(GL_CCW);
 
-	// std::vector<std::vector<uint32_t>*> indexes_lists;
-	// // calculate_indexes(indexes);
-	// for (uint32_t i = 0; i < 6; i++)
-	// {
-	// 	std::vector<uint32_t>* indexes = new std::vector<uint32_t>;
-	// 	indexes_lists.push_back(indexes);
+	std::vector<std::vector<uint32_t>*> indexes_lists;
+	// calculate_indexes(indexes);
+	for (uint32_t i = 0; i < 8; i++)
+	{
+		std::vector<uint32_t>* indexes = new std::vector<uint32_t>;
+		indexes_lists.push_back(indexes);
 
-	// 	calculate_indexes(indexes_lists[i], 1 << i);
-	// 	printf("[%d] %d %d\n", i , indexes_lists[i]->size(), 1 << i);
-	// }
-
-	std::vector<uint32_t> indexes;
-	calculate_indexes(indexes, 10);
+		calculate_indexes(*indexes_lists[i], 1 << i);
+		printf("[%d] %d %d\n", i , indexes_lists[i]->size(), 1 << i);
+	}
 
 	std::vector<Heightmap*> heightmaps;
-	// std::vector<std::string> map_list_M34;
-	// std::vector<std::string> map_list_N34;
 	std::vector<std::string> subdirectories_list;
-
-
-	// map_loader::get_files_list_by_extension(map_list_M34, "maps/M34", "maps", "hgt");
 
 	map_loader::get_subdirectories_list(subdirectories_list, map_directory);
 
@@ -312,28 +328,30 @@ int main(int argc, char *argv[])
 	double load_start = glfwGetTime();
 	for(std::string subdirectory_name : subdirectories_list)
 	{
-		std::cout << "subdirectory " << subdirectory_name << "\n";
 		std::vector<std::string> mapfiles_list;
 		map_loader::get_files_list_by_extension(mapfiles_list, const_cast<char*>(subdirectory_name.c_str()), "hgt");
 
-	std::cout << " dupa\n";
 		for(std::string mapfilename : mapfiles_list)
 		{
-			std::cout << "\nCreating renderer for " << mapfilename << "\n";
-			Heightmap* hmap = new Heightmap(mapfilename.c_str(), "shaders/heightmapECEF.vert", "shaders/heightmapECEF.frag", &indexes,
+			// std::cout << "\nCreating renderer for " << mapfilename << "\n";
+			Heightmap* hmap = new Heightmap(mapfilename.c_str(), "shaders/heightmapECEF.vert", "shaders/heightmapECEF.frag", indexes_lists[2],
 											latitude_range, longitude_range);
 			heightmaps.push_back(hmap);
 		}
+
+		std::cout << "Loaded data from " << subdirectory_name << ".\n";
 	}
 
 	double load_end = glfwGetTime();
 	double load_time = load_end - load_start;
 
-	std::cout << "Loaded " << heightmaps.size() << " chunks in " << load_time << "s [" << load_time / heightmaps.size() << "s per chunk]\n";
+	std::cout << "Loaded " << heightmaps.size() << " chunks in " << load_time << "s [" << load_time / heightmaps.size() << "s per chunk]\n" \
+			  << "Used " << heightmaps.size() * 1201 * 1201 * 2 << " bytes [" << heightmaps.size() * 1201 * 1201 * 2 / 1000000 << " MB].\n";
 
 	Drawable sphere("data/sphere.obj", "shaders/globe.vert", "shaders/globe.frag");
-	// Sphere sphere(1.0f, 36, 18);
-	sphere.position = player_camera.position;
+
+	// sphere.position = player_camera.position;
+	sphere.position = arcball_camera.getEye();
 
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 view = glm::mat4(1.0f);
@@ -370,39 +388,29 @@ int main(int argc, char *argv[])
 			lastFrame = currentFrame;
 		}
 
-		// printf("camera: %f %f %f\n", player_camera.position.x, player_camera.position.y, player_camera.position.z);
-
 		processInput(window);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.07f, 0.07f, 0.07f, 1.0f);
 
-		view = player_camera.getViewMatrix();
+		// view = player_camera.getViewMatrix();
+		view = arcball_camera.getViewMatrix();
+		// projection = glm::perspective(glm::radians(player_camera.zoom), (float)(SCR_WIDTH) / (float)SCR_HEIGHT, 0.01f, 100.0f);
 		projection = glm::perspective(glm::radians(player_camera.zoom), (float)(SCR_WIDTH) / (float)SCR_HEIGHT, 0.01f, 100.0f);
 
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
-		// globe_sphere.position = glm::vec3(52.0, 0.0, 18.0);
-		// printf("Sphere position: %f %f %f\n", sphere.position.x, sphere.position.y, sphere.position.z);
-
-		// printf("lod = %d\n", lod);
-
 		for (Heightmap* heightmap : heightmaps)
 		{
-			// if (lod_change)
-			// {
-    		// 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, heightmap->indexes_buffer.id);
-			// 	// glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indexes_lists[lod]->size() * sizeof(uint32_t), indexes_lists[lod]);
-    		// 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, heightmap->indexes[lod]->size() * sizeof(uint32_t), heightmap->indexes[lod], GL_STATIC_DRAW);
-			// }
-			// std::cout << "activating shader\n";
 			heightmap->shader.Activate();
-			// std::cout << "binding\n";
 			heightmap->Bind();
-
-			// std::cout << "drawing\n";
+			if (lod_change)
+			{
+				heightmap->indexes = indexes_lists[lod];
+    			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, heightmap->indexes_buffer.id);
+    			glBufferData(GL_ELEMENT_ARRAY_BUFFER, heightmap->indexes->size() * sizeof(uint32_t), &heightmap->indexes->front(), GL_STATIC_DRAW);
+			}
 			heightmap->Draw(&model, &view, &projection, TRIANGLES, lod);
-			// std::cout << "unbinding\n";
 			heightmap->Unbind();
 		}
 		lod_change = 0;

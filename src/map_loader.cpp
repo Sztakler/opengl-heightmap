@@ -45,21 +45,22 @@ namespace map_loader
             return;
         }
 
-        std::cout << "Opened file " << filename << '\n';
+        // std::cout << "Opened file " << filename << '\n';
 
         in_file_stream.seekg(0, in_file_stream.end);
         int file_length = in_file_stream.tellg();
         in_file_stream.seekg(0, in_file_stream.beg);
 
-        printf("Creating buffer of size %d bytes.\n", file_length);
+        // printf("Creating buffer of size %d bytes.\n", file_length);
 
         std::vector<unsigned char> bytes(file_length, 0);
 
-        printf("\033[92mBuffer created successfully.\033[0m\nReading %d characters...\n", file_length);
+        // printf("\033[92mBuffer created successfully.\033[0m\nReading %d characters...\n", file_length);
 
         in_file_stream.read((char *)&bytes[0], bytes.size());
         if (in_file_stream)
-            printf("\033[92mAll characters read successfully.\n\033[0m");
+            ;
+            // printf("\033[92mAll characters read successfully.\n\033[0m");
         else
             printf("\033[91merror: only %ld could be read.\n\033[0m", in_file_stream.gcount());
 
@@ -94,19 +95,7 @@ namespace map_loader
                 uint8_t byte_low = bytes[k + 1];
                 int16_t height = (byte_high << 8) + byte_low;
 
-                // printf("[%d %d] %d\n", i, j, height);
-
-                if (!fname.substr(0, 1).compare("N"))
-                    vertices.push_back(i);
-                else
-                    vertices.push_back(i);
-
                 vertices.push_back(height);
-
-                if (!fname.substr(3, 1).compare("E"))
-                    vertices.push_back(j / 2);
-                else
-                    vertices.push_back(j / 2);
             }
         }
     }
@@ -139,7 +128,7 @@ namespace map_loader
     }
 
     void get_files_list_by_extension(std::vector<std::string> &files_list, char *directory_name, char *extension)
-    {   
+    {
         /* Copy original string, because strtok may destroy it. */
         char dirname[50];
         strcpy(dirname, directory_name);
@@ -174,7 +163,6 @@ namespace map_loader
 
             char *ext = strtok(filename, ".");
             ext = strtok(NULL, ".");
-            printf("dupa %s\n", ext);
             if (ext && strcmp(extension, ext) == 0)
             {
                 std::string path(directory_name);

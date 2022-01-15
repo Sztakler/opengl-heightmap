@@ -12,15 +12,15 @@
 class Heightmap
 {
     public:
-        VAO vertices_array;
+        VAO heights_array;
 
-        VBO vertices_buffer;
+        VBO heights_buffer;
 
         EBO indexes_buffer;
 
         Shader shader;
 
-        std::vector<int16_t> vertices;
+        std::vector<int16_t> heights;
         std::vector<uint32_t>* indexes;
 
         float map_scale = 0.0001;
@@ -44,7 +44,7 @@ class Heightmap
         void loadData(const char* filename, std::vector<float> &data, float scale);
         bool loadFromObjectFile(const char* filename);
         bool loadHGTMap(const char* filename, std::vector<uint16_t> &heights, std::vector<coordinate_t> &coordinates);
-        bool loadHGTMap(const char* map_filename, std::vector<int16_t> &vertices, glm::vec2 &chunk_origin,
+        bool loadHGTMap(const char* map_filename, std::vector<int16_t> &heights, glm::vec2 &chunk_origin,
                         std::pair<int, int> latitude_range, std::pair<int, int> longitude_range);
         void calculate_indexes(std::vector<uint> &indexes);
 };

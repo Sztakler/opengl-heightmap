@@ -113,4 +113,14 @@ enum CAMERA
     STATIC_CAMERA
 };
 
+enum Camera_Movement
+{
+    FORWARD,
+    BACKWARD,
+    LEFT,
+    RIGHT,
+    UP,
+    DOWN
+};
+
 #endif
