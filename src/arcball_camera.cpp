@@ -13,6 +13,7 @@ ArcballCamera::ArcballCamera(glm::vec3 eye, glm::vec3 lookAt, glm::vec3 upVector
     this->mouse_sensitivity = 0.1f;
 
     updateViewMatrix();
+
 }
 
 
@@ -61,7 +62,7 @@ void ArcballCamera::updateViewMatrix()
     m_viewMatrix = glm::lookAt(m_eye, m_lookAt, m_upVector);
 }
 
-void ArcballCamera::processKeyboard(float x_offset, float y_offset)
+void ArcballCamera::processMouseTilt(float x_offset, float y_offset)
 {
 
     x_offset *= mouse_sensitivity;
@@ -87,12 +88,11 @@ void ArcballCamera::processMouseScroll(float y_offset)
     if (zoom < 1.0f)
         zoom = 1.0f;
     if (zoom > 45.0f)
-        zoom = 45.0f; 
+        zoom = 45.0f;
 }
 
 void ArcballCamera::updateCameraVectors()
 {
-    printf("m_lookAt = (%f, %f, %f)\n", m_lookAt.x, m_lookAt.y, m_lookAt.z);
     glm::vec3 front_vector;
     front_vector.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     front_vector.y = sin(glm::radians(pitch));
@@ -101,12 +101,15 @@ void ArcballCamera::updateCameraVectors()
     // m_upVector += sin(glm::radians(pitch));
 
     // also re-calculate the Right and Up vector
-    m_lookAt = glm::normalize(front_vector);
-    m_right = glm::normalize(glm::cross(m_lookAt, world_up));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
-    m_upVector = glm::normalize(glm::cross(m_right, m_lookAt));
+    // m_lookAt = glm::normalize(front_vector);
+    // m_lookAt.z = 0;
+    // m_right = glm::normalize(glm::cross(m_lookAt, world_up));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+    // m_upVector = glm::normalize(glm::cross(m_right, m_lookAt));
+    // printf("m_lookAt = (%f, %f, %f)\n", m_lookAt.x, m_lookAt.y, m_lookAt.z);
+    // setCameraView(m_eye, m_lookAt, m_upVector);
 }
 
-void ArcballCamera::processMouseMovement(float x_offset, float y_offset, int viewportWidth, int viewportHeight)
+void ArcballCamera::processMouseRotation(float x_offset, float y_offset, int viewportWidth, int viewportHeight)
 {
     glm::vec4 position(m_eye.x, m_eye.y, m_eye.z, 1.0f);
     glm::vec4 pivot(m_lookAt.x, m_lookAt.y, m_lookAt.z, 1.0f);

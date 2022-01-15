@@ -97,7 +97,7 @@ void Camera::processMouseScroll(float y_offset)
     if (zoom < 1.0f)
         zoom = 1.0f;
     if (zoom > 45.0f)
-        zoom = 45.0f; 
+        zoom = 45.0f;
 }
 
 void Camera::updateCameraVectors()

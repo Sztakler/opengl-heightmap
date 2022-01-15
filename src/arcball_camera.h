@@ -28,7 +28,7 @@ class ArcballCamera
         * lookAt -- point that the camera is looking at.
         * upVector -- camera's orientation (vector of it's 'up' direction).
         */
-        ArcballCamera(glm::vec3 eye, glm::vec3 lookAt, glm::vec3 upVector, float yaw = -90.0f, float pitch = 0.0f);
+        ArcballCamera(glm::vec3 eye, glm::vec3 lookAt, glm::vec3 upVector, float yaw = 90.0f, float pitch = 0.0f);
 
     public:
         glm::mat4x4 getViewMatrix() const;
@@ -40,8 +40,8 @@ class ArcballCamera
         glm::vec3 getViewDirection() const;
         glm::vec3 getRightVector() const;
 
-        void processKeyboard(float x_offset, float y_offset);
-        void processMouseMovement(float x_offset, float y_offset, int viewportWidth, int viewportHeight);
+        void processMouseRotation(float x_offset, float y_offset, int viewportWidth, int viewportHeight);
+        void processMouseTilt(float x_offset, float y_offset);
         void processMouseScroll(float y_offset);
 
         void setCameraView(glm::vec3 eye, glm::vec3 look_at, glm::vec3 up);
