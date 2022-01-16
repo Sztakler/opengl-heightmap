@@ -15,7 +15,7 @@ out float alt;
 
 void main()
 {
-    float radius = 10;
+    float radius = 10.0;
     float delta = 1.0 / 1201.0;
     scale = 0.00001;
 

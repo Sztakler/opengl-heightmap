@@ -23,6 +23,7 @@ class ArcballCamera
         float zoom;
 
         float mouse_sensitivity;
+        float movement_speed;
 
     public:
         /* Default constructor for arcball camera. */
@@ -48,6 +49,7 @@ class ArcballCamera
         void processMouseRotation(float x_offset, float y_offset, int viewportWidth, int viewportHeight);
         void processMouseTilt(float x_offset, float y_offset);
         void processMouseScroll(float y_offset);
+        void processKeyboard(Camera_Movement direction, float delta_time);
 
         void setCameraView(glm::vec3 eye, glm::vec3 look_at, glm::vec3 up);
         void updateViewMatrix();

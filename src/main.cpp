@@ -13,6 +13,7 @@
 #include "arc_camera.h"
 #include "heightmap.h"
 #include "drawable.h"
+#include "sphere.h"
 
 #include <GLFW/glfw3.h>
 
@@ -65,12 +66,12 @@ float yaw = -90.0f;
 
 int lod = 0;
 int lod_change = 0;
-int lod_auto = 0;
+int lod_auto = 1;
 
 DRAWING_MODE drawing_mode = TRIANGLES;
 
 Camera player_camera(glm::vec3(5.0f, 0.0f, 15.0f));
-ArcballCamera arcball_camera(glm::vec3(15.0, 0.0, 15.0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 90.0f, 0.0f);
+ArcballCamera arcball_camera(glm::vec3(3.0, 12.0, 8.0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 90.0f, 0.0f);
 ArcCamera arc_camera(glm::vec3(15.0, 0.0, 15.0), glm::vec3(0.0, 0.0, 0.0));
 Camera static_camera(glm::vec3(-20.0f, 10.0f, 20.0f));
 Camera *current_camera = &player_camera;
@@ -191,10 +192,15 @@ void processInput(GLFWwindow *window)
 		arcball_camera.processMouseRotation(5.0f, 0.0f, SCR_WIDTH, SCR_HEIGHT);
 	}
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
 		player_camera.processKeyboard(UP, delta_time);
+		arcball_camera.processKeyboard(UP, delta_time);
+	}
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+	{
 		player_camera.processKeyboard(DOWN, delta_time);
-
+		arcball_camera.processKeyboard(DOWN, delta_time);
+	}
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 	{
 		player_camera.processMouseMovement(0.0, 10.0);
@@ -355,12 +361,12 @@ int main(int argc, char *argv[])
 	for (std::string subdirectory_name : subdirectories_list)
 	{
 		std::vector<std::string> mapfiles_list;
-		map_loader::get_files_list_by_extension(mapfiles_list, const_cast<char *>(subdirectory_name.c_str()), "hgt");
+		map_loader::get_files_list_by_extension(mapfiles_list, const_cast<char *>(subdirectory_name.c_str()), "hgt", latitude_range, longitude_range);
 
 		for (std::string mapfilename : mapfiles_list)
 		{
 			// std::cout << "\nCreating renderer for " << mapfilename << "\n";
-			Heightmap *hmap = new Heightmap(mapfilename.c_str(), "shaders/heightmapECEF.vert", "shaders/heightmapECEF.frag", indexes_lists[2],
+			Heightmap *hmap = new Heightmap(mapfilename.c_str(), "shaders/heightmapECEF.vert", "shaders/heightmapECEF.frag", indexes_lists[0],
 											latitude_range, longitude_range);
 			heightmaps.push_back(hmap);
 		}
@@ -377,9 +383,11 @@ int main(int argc, char *argv[])
 			  << "Used " << heightmaps.size() * 1201 * 1201 * 2 << " bytes [" << heightmaps.size() * 1201 * 1201 * 2 / 1000000 << " MB].\n";
 
 	Drawable sphere("data/sphere.obj", "shaders/globe.vert", "shaders/globe.frag");
+	Sphere globe(10.0f, 30, 30);
 
 	// sphere.position = player_camera.position;
 	sphere.position = arc_camera.position;
+	globe.position = glm::vec3(0.0, 0.0, 0.0);
 
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 view = glm::mat4(1.0f);
@@ -469,10 +477,15 @@ int main(int argc, char *argv[])
 		}
 		lod_change = 0;
 
-		sphere.shader.Activate();
-		sphere.Bind();
-		sphere.Draw(&model, &view, &projection, TRIANGLES, false, player_camera.position);
-		sphere.Unbind();
+		// sphere.shader.Activate();
+		// sphere.Bind();
+		// sphere.Draw(&model, &view, &projection, TRIANGLES, false, player_camera.position);
+		// sphere.Unbind();
+
+		globe.shader.Activate();
+		globe.Bind();
+		globe.Draw(&model, &view, &projection, TRIANGLES);
+		globe.Unbind();
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);

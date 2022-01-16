@@ -14,6 +14,7 @@ OBJ = $(OBJ_DIR)/main.o \
 	$(OBJ_DIR)/arcball_camera.o \
 	$(OBJ_DIR)/arc_camera.o \
 	$(OBJ_DIR)/heightmap.o \
+	$(OBJ_DIR)/sphere.o \
 	$(OBJ_DIR)/map_loader.o \
 
 

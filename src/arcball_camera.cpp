@@ -10,13 +10,13 @@ ArcballCamera::ArcballCamera(glm::vec3 eye, glm::vec3 lookAt, glm::vec3 upVector
     pitch(pitch)
 {
     this->upVector_tilt = upVector;
+    this->world_up = upVector;
     this->front_tilt = m_lookAt;
     this->pos = m_eye;
 
     this->zoom = 45.0f;
     this->mouse_sensitivity = 0.1f;
-
-    // updateCameraVectors();
+    this->movement_speed = 0.5;
 
     updateViewMatrix();
 
@@ -92,6 +92,22 @@ void ArcballCamera::processMouseTilt(float x_offset, float y_offset)
     updateCameraVectors();
 }
 
+void ArcballCamera::processKeyboard(Camera_Movement direction, float delta_time)
+{
+    float velocity = movement_speed * delta_time;
+
+    if (direction == UP)
+    {
+        m_eye += m_upVector * velocity;
+    }
+    if (direction == DOWN)
+    {
+        m_eye -= m_upVector * velocity;
+    }
+
+    setCameraView(m_eye, m_lookAt, m_upVector);
+}
+
 void ArcballCamera::processMouseScroll(float y_offset)
 {
     zoom -= (float)y_offset;
@@ -114,14 +130,18 @@ void ArcballCamera::updateCameraVectors()
     front_tilt = glm::normalize(front_vector);
     // m_lookAt.z = 0;
     right_tilt = glm::normalize(glm::cross(front_tilt, world_up));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
-    upVector_tilt = glm::normalize(glm::cross(m_right, front_tilt));
-    // printf("m_lookAt = (%f, %f, %f)\n", m_lookAt.x, m_lookAt.y, m_lookAt.z);
-    setCameraView(pos, front_tilt, upVector_tilt);
+    upVector_tilt = glm::normalize(glm::cross(right_tilt, front_tilt));
+    printf("tilt pitch=%f yaw=%f\n", pitch, yaw);
+    setCameraView(m_eye, -front_tilt + m_eye, m_upVector);
 
 }
 
 void ArcballCamera::processMouseRotation(float x_offset, float y_offset, int viewportWidth, int viewportHeight)
 {
+
+    x_offset *= mouse_sensitivity;
+    y_offset *= mouse_sensitivity;
+
     glm::vec4 position(m_eye.x, m_eye.y, m_eye.z, 1.0f);
     glm::vec4 pivot(m_lookAt.x, m_lookAt.y, m_lookAt.z, 1.0f);
 
@@ -150,7 +170,9 @@ void ArcballCamera::processMouseRotation(float x_offset, float y_offset, int vie
     m_eye = std::move(final_position);
     m_lookAt = std::move(getLookAt());
     m_upVector = std::move(m_upVector);
+    printf("rotate\n");
 
-    setCameraView(m_eye, getLookAt(), m_upVector);
-    printViewMatrix();
+    setCameraView(m_eye, getLookAt(), upVector_tilt);
+    // printViewMatrix();
+    printf("%f %f %f\n", m_eye.x, m_eye.y, m_eye.z);
 }

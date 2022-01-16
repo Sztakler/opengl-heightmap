@@ -20,6 +20,7 @@ namespace map_loader {
     /* Populates 'files_list' vector with paths to files inside 'directory_name' of given 'extension'.
     * 'extension' needs to be provided withouth ".", e.g. "txt".
     */
-    void get_files_list_by_extension(std::vector<std::string> &files_list, char* directory_name, char* extension);
+    void get_files_list_by_extension(std::vector<std::string> &files_list, char *directory_name, char *extension,
+                                     std::pair<int, int> latitude_range, std::pair<int, int> longitude_range);
 }
 #endif

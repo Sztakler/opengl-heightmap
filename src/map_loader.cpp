@@ -127,7 +127,8 @@ namespace map_loader
         closedir(directory);
     }
 
-    void get_files_list_by_extension(std::vector<std::string> &files_list, char *directory_name, char *extension)
+    void get_files_list_by_extension(std::vector<std::string> &files_list, char *directory_name, char *extension,
+                                     std::pair<int, int> latitude_range, std::pair<int, int> longitude_range)
     {
         /* Copy original string, because strtok may destroy it. */
         char dirname[50];
