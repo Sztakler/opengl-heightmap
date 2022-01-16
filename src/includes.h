@@ -6,6 +6,7 @@
 #include <string>
 #include <cstdlib>
 #include <math.h>
+#include <cmath>
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -113,6 +114,7 @@ enum CAMERA
     STATIC_CAMERA
 };
 
+
 enum Camera_Movement
 {
     FORWARD,
@@ -122,5 +124,11 @@ enum Camera_Movement
     UP,
     DOWN
 };
+
+const float YAW         = 0.0f;
+const float PITCH       =  0.0f;
+const float SPEED       =  2.5f;
+const float SENSITIVITY =  0.1f;
+const float ZOOM        =  45.0f;
 
 #endif

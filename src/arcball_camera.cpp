@@ -9,13 +9,27 @@ ArcballCamera::ArcballCamera(glm::vec3 eye, glm::vec3 lookAt, glm::vec3 upVector
     yaw(yaw),
     pitch(pitch)
 {
+    this->upVector_tilt = upVector;
+    this->front_tilt = m_lookAt;
+    this->pos = m_eye;
+
     this->zoom = 45.0f;
     this->mouse_sensitivity = 0.1f;
+
+    // updateCameraVectors();
 
     updateViewMatrix();
 
 }
 
+void ArcballCamera::printViewMatrix()
+{
+    printf("[%f %f %f %f]\n|%f %f %f %f|\n|%f %f %f %f|\n[%f %f %f %f]\n\n",
+        m_viewMatrix[0].x, m_viewMatrix[0].y, m_viewMatrix[0].z, m_viewMatrix[0].w,
+        m_viewMatrix[1].x, m_viewMatrix[1].y, m_viewMatrix[1].z, m_viewMatrix[1].w,
+        m_viewMatrix[2].x, m_viewMatrix[2].y, m_viewMatrix[2].z, m_viewMatrix[2].w,
+        m_viewMatrix[3].x, m_viewMatrix[3].y, m_viewMatrix[3].z, m_viewMatrix[3].w);
+}
 
 glm::mat4x4 ArcballCamera::getViewMatrix() const
 {
@@ -50,11 +64,7 @@ glm::vec3 ArcballCamera::getRightVector() const
 
 void ArcballCamera::setCameraView(glm::vec3 eye, glm::vec3 lookAt, glm::vec3 up)
 {
-    m_eye = std::move(eye);
-    m_lookAt = std::move(lookAt);
-    m_upVector = std::move(up);
-
-    updateViewMatrix();
+    m_viewMatrix = glm::lookAt(eye, lookAt, up);
 }
 
 void ArcballCamera::updateViewMatrix()
@@ -98,15 +108,16 @@ void ArcballCamera::updateCameraVectors()
     front_vector.y = sin(glm::radians(pitch));
     front_vector.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 
-    // m_upVector += sin(glm::radians(pitch));
+    // upVector_tilt += sin(glm::radians(pitch));
 
     // also re-calculate the Right and Up vector
-    // m_lookAt = glm::normalize(front_vector);
+    front_tilt = glm::normalize(front_vector);
     // m_lookAt.z = 0;
-    // m_right = glm::normalize(glm::cross(m_lookAt, world_up));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
-    // m_upVector = glm::normalize(glm::cross(m_right, m_lookAt));
+    right_tilt = glm::normalize(glm::cross(front_tilt, world_up));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+    upVector_tilt = glm::normalize(glm::cross(m_right, front_tilt));
     // printf("m_lookAt = (%f, %f, %f)\n", m_lookAt.x, m_lookAt.y, m_lookAt.z);
-    // setCameraView(m_eye, m_lookAt, m_upVector);
+    setCameraView(pos, front_tilt, upVector_tilt);
+
 }
 
 void ArcballCamera::processMouseRotation(float x_offset, float y_offset, int viewportWidth, int viewportHeight)
@@ -134,6 +145,12 @@ void ArcballCamera::processMouseRotation(float x_offset, float y_offset, int vie
     rotation_matrix_y = glm::rotate(rotation_matrix_y, y_angle, getRightVector());
 
     glm::vec3 final_position = rotation_matrix_y * (position - pivot) + pivot;
+    // this->pos = final_position;
 
-    setCameraView(final_position, getLookAt(), m_upVector);
+    m_eye = std::move(final_position);
+    m_lookAt = std::move(getLookAt());
+    m_upVector = std::move(m_upVector);
+
+    setCameraView(m_eye, getLookAt(), m_upVector);
+    printViewMatrix();
 }

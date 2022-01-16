@@ -10,6 +10,7 @@
 #include "ebo.h"
 #include "camera.h"
 #include "arcball_camera.h"
+#include "arc_camera.h"
 #include "heightmap.h"
 #include "drawable.h"
 
@@ -64,11 +65,13 @@ float yaw = -90.0f;
 
 int lod = 0;
 int lod_change = 0;
+int lod_auto = 0;
 
 DRAWING_MODE drawing_mode = TRIANGLES;
 
 Camera player_camera(glm::vec3(5.0f, 0.0f, 15.0f));
 ArcballCamera arcball_camera(glm::vec3(15.0, 0.0, 15.0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 90.0f, 0.0f);
+ArcCamera arc_camera(glm::vec3(15.0, 0.0, 15.0), glm::vec3(0.0, 0.0, 0.0));
 Camera static_camera(glm::vec3(-20.0f, 10.0f, 20.0f));
 Camera *current_camera = &player_camera;
 CAMERA camera_index = PLAYER_CAMERA;
@@ -99,8 +102,10 @@ void mouse_callback(GLFWwindow *window, double x_pos, double y_pos)
 
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 		arcball_camera.processMouseRotation(-x_offset, y_offset, SCR_WIDTH, SCR_HEIGHT);
-	else
-		arcball_camera.processMouseTilt(-x_offset, y_offset);
+		// arc_camera.processKeyboard(x_offset, y_offset, SCR_WIDTH, SCR_HEIGHT);
+	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
+		arcball_camera.processMouseTilt(x_offset, y_offset);
+		// arc_camera.processMouseMovement(x_offset, y_offset);
 }
 
 void scroll_callback(GLFWwindow *window, double x_offset, double y_offset)
@@ -117,45 +122,52 @@ void processInput(GLFWwindow *window)
 	{
 		lod = 1;
 		lod_change = 1;
-		// glBufferData(GL_ELEMENT_ARRAY_BUFFER,  indexes[3]->size(), this->indexes[3], GL_STATIC_DRAW);
+		lod_auto = 0;
 	}
 	if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
 	{
 		lod = 2;
 		lod_change = 1;
+		lod_auto = 0;
 	}
 	if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
 	{
 		lod = 3;
 		lod_change = 1;
+		lod_auto = 0;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
 	{
 		lod = 4;
 		lod_change = 1;
+		lod_auto = 0;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
 	{
 		lod = 5;
 		lod_change = 1;
+		lod_auto = 0;
 	}
 	if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
 	{
 		lod = 6;
 		lod_change = 1;
+		lod_auto = 0;
 	}
 	if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
 	{
 		lod = 7;
 		lod_change = 1;
+		lod_auto = 0;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS)
 	{
-		lod = 0;
+		lod = 4;
 		lod_change = 1;
+		lod_auto = 1;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -338,6 +350,8 @@ int main(int argc, char *argv[])
 	}
 
 	double load_start = glfwGetTime();
+	int directory_index = 0;
+
 	for (std::string subdirectory_name : subdirectories_list)
 	{
 		std::vector<std::string> mapfiles_list;
@@ -351,7 +365,9 @@ int main(int argc, char *argv[])
 			heightmaps.push_back(hmap);
 		}
 
-		std::cout << "Loaded data from " << subdirectory_name << ".\n";
+		directory_index++;
+
+		std::cout << "Loaded data from " << subdirectory_name << " [" << directory_index << "/" << subdirectories_list.size() << "].\n";
 	}
 
 	double load_end = glfwGetTime();
@@ -363,7 +379,7 @@ int main(int argc, char *argv[])
 	Drawable sphere("data/sphere.obj", "shaders/globe.vert", "shaders/globe.frag");
 
 	// sphere.position = player_camera.position;
-	sphere.position = arcball_camera.getEye();
+	sphere.position = arc_camera.position;
 
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 view = glm::mat4(1.0f);
@@ -388,9 +404,11 @@ int main(int argc, char *argv[])
 		last_change += delta_time;
 		counter++;
 
+		float fps = (1.0 / delta_time) * counter;
+
 		if (delta_time >= 1.0 / 30.0)
 		{
-			std::string FPS = std::to_string((1.0 / delta_time) * counter);
+			std::string FPS = std::to_string(fps);
 			std::string ms = std::to_string((delta_time / counter) * 1000);
 			std::string newTitle = "Heightmap-OpenGL - " + FPS + "FPS / " + ms + "ms";
 			glfwSetWindowTitle(window, newTitle.c_str());
@@ -399,6 +417,25 @@ int main(int argc, char *argv[])
 		}
 
 		processInput(window);
+
+		if (fps < 10.0 && lod_auto)
+		{
+			if (lod + 1 <= 7)
+			{
+				lod++;
+				lod_change = 1;
+			}
+			printf("autolod lod=%d\n", lod);
+		}
+		if (fps > 59.0 && lod_auto)
+		{
+			if (lod - 1 >= 0)
+			{
+				lod--;
+				lod_change = 1;
+			}
+			printf("autolod lod=%d\n", lod);
+		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.07f, 0.07f, 0.07f, 1.0f);
@@ -409,6 +446,13 @@ int main(int argc, char *argv[])
 		projection = glm::perspective(glm::radians(player_camera.zoom), (float)(SCR_WIDTH) / (float)SCR_HEIGHT, 0.01f, 100.0f);
 
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+
+		// printf("CAMERA\nposition %f %f %f\nfront %f %f %f\nup %f %f %f\nright %f %f %f\nworld_up %f %f %f\n\n",
+        // arc_camera.position.x, arc_camera.position.y, arc_camera.position.z,
+        // arc_camera.front.x, arc_camera.front.y, arc_camera.front.z,
+        // arc_camera.up.x, arc_camera.up.y, arc_camera.up.z,
+        // arc_camera.right.x, arc_camera.right.y, arc_camera.right.z,
+        // arc_camera.world_up.x, arc_camera.world_up.y, arc_camera.world_up.z);
 
 		for (Heightmap *heightmap : heightmaps)
 		{

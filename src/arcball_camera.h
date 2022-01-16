@@ -12,6 +12,11 @@ class ArcballCamera
         glm::vec3 m_upVector;       // Camera's orientation.
         glm::vec3 world_up;         // Camera's orientation.
         glm::vec3 m_right;
+        glm::vec3 pos;
+
+        glm::vec3 upVector_tilt;
+        glm::vec3 right_tilt;
+        glm::vec3 front_tilt;
 
         float yaw;
         float pitch;
@@ -47,6 +52,7 @@ class ArcballCamera
         void setCameraView(glm::vec3 eye, glm::vec3 look_at, glm::vec3 up);
         void updateViewMatrix();
         void updateCameraVectors();
+        void printViewMatrix();
 };
 
 #endif
