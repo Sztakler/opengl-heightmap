@@ -11,7 +11,7 @@
 
 namespace map_loader
 {
-    void load_heightmap(std::vector<int16_t> &vertices, char *filename)
+    void load_heightmap(std::vector<int16_t> &vertices, char *filename, int offset)
     {
         std::string line;
         std::string word;
@@ -83,11 +83,10 @@ namespace map_loader
             cols = 3601 * 2;
         }
 
-        double delta = 1.0 / rows;
 
-        for (int16_t i = 0; i < rows; i++)
+        for (int16_t i = 0; i < rows; i += offset)
         {
-            for (int16_t j = 0; j < cols; j += 2)
+            for (int16_t j = 0; j < cols; j += 2 * offset)
             {
                 int k = cols * i + j;
 

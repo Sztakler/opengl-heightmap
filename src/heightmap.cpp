@@ -2,11 +2,11 @@
 
 Heightmap::Heightmap(const char *map_filename, const char *vertex_shader_filename,
                      const char *fragment_shader_filename, std::vector<uint32_t>* indexes,
-                     std::pair<int, int> latitude_range, std::pair<int, int> longitude_range)
+                     std::pair<int, int> latitude_range, std::pair<int, int> longitude_range, int offset)
 {
+    this->offset = offset;
     loadHGTMap(map_filename, this->heights, this->chunk_origin, latitude_range, longitude_range);
     this->indexes = indexes;
-
 
     this->heights_array = VAO();
     this->heights_array.Bind();
@@ -49,6 +49,7 @@ void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, D
     glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(*view));
     glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(*projection));
     glUniform2f(3, chunk_origin.x, chunk_origin.y);
+    glUniform1i(4, (int)ceil(1201.0 / offset));
     // printf("lod = %d, size = %d\n", lod, indexes[lod]->size());
     switch (drawing_mode)
     {
@@ -130,7 +131,7 @@ bool Heightmap::loadHGTMap(const char* map_filename, std::vector<int16_t> &heigh
 
     chunk_origin = glm::vec2((float)(latitude+1), (float)longitude); // add 1, because latitude from filename is actually lower left corner of square
 
-    map_loader::load_heightmap(heights, const_cast<char*>(map_filename));
+    map_loader::load_heightmap(heights, const_cast<char*>(map_filename), this->offset);
 
     // printf("\033[92mLoaded %ld/%ld points to heights [%ld bytes].\n\033[0m", heights.size(), 1201*1201*3, heights.size() * sizeof(int16_t));
 

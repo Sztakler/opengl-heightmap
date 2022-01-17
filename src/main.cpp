@@ -10,21 +10,19 @@
 #include "ebo.h"
 #include "camera.h"
 #include "arcball_camera.h"
-#include "arc_camera.h"
 #include "heightmap.h"
 #include "drawable.h"
 #include "sphere.h"
 
 #include <GLFW/glfw3.h>
 
-void calculate_indexes(std::vector<uint> &indexes, uint step)
+void calculate_indexes(std::vector<uint> &indexes, uint step, int n_rows)
 {
-	int n_rows = 1201;
-
 	for (uint i = 0; i < n_rows - step; i += step)
 	{
 		for (uint j = 0; j < n_rows - step; j += step)
 		{
+			// printf("i=%d j=%d\n", i, j);
 			indexes.push_back(i * n_rows + j);
 			indexes.push_back((i + step) * n_rows + j + step);
 			indexes.push_back(i * n_rows + j + step);
@@ -72,7 +70,6 @@ DRAWING_MODE drawing_mode = TRIANGLES;
 
 Camera player_camera(glm::vec3(5.0f, 0.0f, 15.0f));
 ArcballCamera arcball_camera(glm::vec3(3.0, 12.0, 8.0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 90.0f, 0.0f);
-ArcCamera arc_camera(glm::vec3(15.0, 0.0, 15.0), glm::vec3(0.0, 0.0, 0.0));
 Camera static_camera(glm::vec3(-20.0f, 10.0f, 20.0f));
 Camera *current_camera = &player_camera;
 CAMERA camera_index = PLAYER_CAMERA;
@@ -259,6 +256,7 @@ int main(int argc, char *argv[])
 	char *map_directory;
 	std::pair<int, int> latitude_range = {1, 0};
 	std::pair<int, int> longitude_range = {1, 0};
+	int offset = 1;
 
 	printf("argc = %d\n", argc);
 
@@ -268,14 +266,20 @@ int main(int argc, char *argv[])
 		// board_size = 10;
 		map_directory = argv[1];
 	}
-	else if (argc == 8)
+	else if (argc == 3)
 	{
 		map_directory = argv[1];
-		latitude_range.first = atoi(argv[3]);
-		latitude_range.second = atoi(argv[4]);
+		offset = atoi(argv[2]);
+	}
+	else if (argc == 9)
+	{
+		map_directory = argv[1];
+		offset = atoi(argv[2]);
+		latitude_range.first = atoi(argv[4]);
+		latitude_range.second = atoi(argv[5]);
 
-		longitude_range.first = atoi(argv[6]);
-		longitude_range.second = atoi(argv[7]);
+		longitude_range.first = atoi(argv[7]);
+		longitude_range.second = atoi(argv[8]);
 	}
 	else
 	{
@@ -284,7 +288,7 @@ int main(int argc, char *argv[])
 
 	for (int i = 0; i < argc; i++)
 	{
-		printf("%s ", argv[i]);
+		printf("%s offset=%d ", argv[i], offset);
 	}
 	printf("\n");
 
@@ -341,8 +345,8 @@ int main(int argc, char *argv[])
 		std::vector<uint32_t> *indexes = new std::vector<uint32_t>;
 		indexes_lists.push_back(indexes);
 
-		calculate_indexes(*indexes_lists[i], 1 << i);
-		printf("[%d] %d %d\n", i, indexes_lists[i]->size(), 1 << i);
+		calculate_indexes(*indexes_lists[i], i+1, (int)ceil(1201.0 / offset));
+		printf("[%d] %d %d\n", i, indexes_lists[i]->size(), i+1);
 	}
 
 	std::vector<Heightmap *> heightmaps;
@@ -366,8 +370,8 @@ int main(int argc, char *argv[])
 		for (std::string mapfilename : mapfiles_list)
 		{
 			// std::cout << "\nCreating renderer for " << mapfilename << "\n";
-			Heightmap *hmap = new Heightmap(mapfilename.c_str(), "shaders/heightmapECEF.vert", "shaders/heightmapECEF.frag", indexes_lists[0],
-											latitude_range, longitude_range);
+			Heightmap *hmap = new Heightmap(mapfilename.c_str(), "shaders/heightmapECEF.vert", "shaders/heightmapECEF.frag", indexes_lists[5],
+											latitude_range, longitude_range, offset);
 			heightmaps.push_back(hmap);
 		}
 
@@ -380,13 +384,13 @@ int main(int argc, char *argv[])
 	double load_time = load_end - load_start;
 
 	std::cout << "Loaded " << heightmaps.size() << " chunks in " << load_time << "s [" << load_time / heightmaps.size() << "s per chunk]\n"
-			  << "Used " << heightmaps.size() * 1201 * 1201 * 2 << " bytes [" << heightmaps.size() * 1201 * 1201 * 2 / 1000000 << " MB].\n";
+			  << "Used " << heightmaps.size() * ceil(1201.0 / offset) * ceil(1201.0 / offset) * 2 << " bytes [" << heightmaps.size() * ceil(1201.0 / offset) * ceil(1201.0 / offset) * 2 / 1000000 << " MB].\n";
 
-	Drawable sphere("data/sphere.obj", "shaders/globe.vert", "shaders/globe.frag");
-	Sphere globe(10.0f, 30, 30);
+	// Drawable sphere("data/sphere.obj", "shaders/globe.vert", "shaders/globe.frag");
+	Sphere globe(10.0f, 50, 50);
 
 	// sphere.position = player_camera.position;
-	sphere.position = arc_camera.position;
+	// sphere.position = arc_camera.position;
 	globe.position = glm::vec3(0.0, 0.0, 0.0);
 
 	glm::mat4 model = glm::mat4(1.0f);

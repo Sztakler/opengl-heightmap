@@ -14,9 +14,22 @@ ArcballCamera::ArcballCamera(glm::vec3 eye, glm::vec3 lookAt, glm::vec3 upVector
     this->front_tilt = m_lookAt;
     this->pos = m_eye;
 
+    this->current_lookAt = m_lookAt;
+
     this->zoom = 45.0f;
     this->mouse_sensitivity = 0.1f;
-    this->movement_speed = 0.5;
+    this->movement_speed_table = {0.00301973834223185, 0.008356641661610944, 0.01256503263442188, 0.033824826987196674, 0.03513840852447328, 0.03650828023675758, 0.03793707066926023, 0.03942754065184267, 0.04098259041179555, 0.04260526709243335, 0.044298772701938396, 
+0.04606647251843273, 0.047911903978904595, 0.04983878608137199, 0.05185102933154114, 0.053952746267215274, 0.05614826259584308, 0.05844212898287047, 0.06083913353098941, 0.06334431499296932, 0.06596297676352475, 
+0.0687007016986285, 0.07156336781383614, 0.07455716491655903, 0.07768861223082595, 0.08096457707692152, 0.08439229467240426, 0.0879793891254033, 0.09173389569579381, 0.09566428440487884, 0.09977948507957878, 
+0.10408891392288265, 0.10860250170846475, 0.11333072370395483, 0.11828463143439413, 0.12347588640494961, 0.12891679591003577, 0.13462035106463285, 0.1406002672028564, 0.1468710267987431, 0.15344792507485086, 
+0.16034711847565264, 0.16758567619490955, 0.17518163495928912, 0.18315405728452208, 0.19152309343542892, 0.20031004733728283, 0.2095374467032763, 0.2192291176614329, 0.2294102641842239, 0.240107552645545, 
+0.2513492018526619, 0.2631650789253937, 0.2755868014212743, 0.2886478461338785, 0.30238366502204944, 0.31683180876060246, 0.3320320584383634, 0.348026565967342, 0.36486000380761463, 0.382579724656366, 
+0.40123593179670164, 0.4208818608526025, 0.44157397375100216, 0.4633721657507365, 0.4863399864613761, 0.5105448758430716, 0.5360584162518776, 0.5629566016740261, 0.5913201253777159, 0.6212346873026874, 
+0.652791322606666, 0.6860867528942767, 0.7212237617688868, 0.7583115964716535, 0.7974663975056385, 0.8388116582869335, 0.8824787170202074, 0.928607283163904, 0.9773460010313814, 1.0288530532698925, 
+1.083296807170409, 1.140856506989415, 1.2017230157101495, 1.2660996099370474, 1.3342028319048418, 1.4062634028948744, 1.4825272026873997, 1.5632563200424496, 1.6487301795951241, 1.7392467509768732, 
+1.8351238464348287, 1.9367005137197573, 2.044338531552871, 2.1584240155660357, 2.2793691432427945, 2.407614007073199, 2.543628605878177, 2.6879149850642583, 2.841009537441963, 3.0034854771872954, 
+};
+    this->movement_speed = movement_speed_table[50];
 
     updateViewMatrix();
 
@@ -94,18 +107,37 @@ void ArcballCamera::processMouseTilt(float x_offset, float y_offset)
 
 void ArcballCamera::processKeyboard(Camera_Movement direction, float delta_time)
 {
-    float velocity = movement_speed * delta_time;
+    float height = glm::length(m_eye - m_lookAt);
+    int speed_index = floor((height - 10) * 10); // Maps height (ranging from 10 to 50) to indexes from 0 to 100.
+    std::cout << height << " " << (height - 10) * 10 << " " << speed_index << " " << movement_speed_table[speed_index] << " " << movement_speed_table.size()<< "\n";
+
+    this->movement_speed = movement_speed_table[speed_index];
+
+    float velocity = this->movement_speed * delta_time;
+
+    printf("Camera height: %f\nCamera velocity: %f\n\n", height, velocity);
+
+    glm::vec3 new_m_eye;
+    float new_height;
 
     if (direction == UP)
     {
-        m_eye += m_upVector * velocity;
+        new_m_eye = m_eye + (m_eye - m_lookAt) * velocity;
+        new_height = glm::length(new_m_eye - m_lookAt);
+
+        if (new_height < 20.0)
+            m_eye = new_m_eye;
     }
     if (direction == DOWN)
     {
-        m_eye -= m_upVector * velocity;
+        new_m_eye = m_eye - (m_eye - m_lookAt) * velocity;
+        new_height = glm::length(new_m_eye - m_lookAt);
+
+        if (new_height > 10.0)
+            m_eye = new_m_eye;
     }
 
-    setCameraView(m_eye, m_lookAt, m_upVector);
+    setCameraView(m_eye, current_lookAt, m_upVector);
 }
 
 void ArcballCamera::processMouseScroll(float y_offset)
@@ -124,15 +156,16 @@ void ArcballCamera::updateCameraVectors()
     front_vector.y = sin(glm::radians(pitch));
     front_vector.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 
-    // upVector_tilt += sin(glm::radians(pitch));
 
     // also re-calculate the Right and Up vector
     front_tilt = glm::normalize(front_vector);
-    // m_lookAt.z = 0;
+
     right_tilt = glm::normalize(glm::cross(front_tilt, world_up));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
     upVector_tilt = glm::normalize(glm::cross(right_tilt, front_tilt));
-    printf("tilt pitch=%f yaw=%f\n", pitch, yaw);
-    setCameraView(m_eye, -front_tilt + m_eye, m_upVector);
+
+    current_lookAt = -front_tilt + m_eye;
+
+    setCameraView(m_eye, current_lookAt, m_upVector);
 
 }
 
@@ -170,9 +203,9 @@ void ArcballCamera::processMouseRotation(float x_offset, float y_offset, int vie
     m_eye = std::move(final_position);
     m_lookAt = std::move(getLookAt());
     m_upVector = std::move(m_upVector);
-    printf("rotate\n");
 
-    setCameraView(m_eye, getLookAt(), upVector_tilt);
+    current_lookAt = m_lookAt;
+
+    setCameraView(m_eye, current_lookAt, upVector_tilt);
     // printViewMatrix();
-    printf("%f %f %f\n", m_eye.x, m_eye.y, m_eye.z);
 }

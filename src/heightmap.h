@@ -24,6 +24,7 @@ class Heightmap
         std::vector<uint32_t>* indexes;
 
         float map_scale = 0.0001;
+        int offset;
         glm::vec2 chunk_origin;
 
     public:
@@ -31,7 +32,7 @@ class Heightmap
                const char* fragment_shader_filename);
         Heightmap(const char* obj_data_filename, const char* vertex_shader_filename,
                const char* fragment_shader_filename, std::vector<uint32_t>* indexes,
-               std::pair<int, int> latitude_range, std::pair<int, int> longitude_range);
+               std::pair<int, int> latitude_range, std::pair<int, int> longitude_range, int offset);
 
     public:
         void Bind();

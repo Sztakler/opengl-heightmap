@@ -18,12 +18,16 @@ class ArcballCamera
         glm::vec3 right_tilt;
         glm::vec3 front_tilt;
 
+        glm::vec3 current_lookAt;
+
         float yaw;
         float pitch;
         float zoom;
 
         float mouse_sensitivity;
         float movement_speed;
+
+        std::vector<float> movement_speed_table;
 
     public:
         /* Default constructor for arcball camera. */
