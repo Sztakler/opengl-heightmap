@@ -24,6 +24,7 @@ class Sphere
 
 
     public:
+        Sphere();
         Sphere(float radius, int n_stacks, int n_sectors);
 
     public:

@@ -1,6 +1,8 @@
 #include "sphere.h"
 
-Sphere::Sphere(float radius, int n_sectors, int n_stacks) : 
+Sphere::Sphere(){}
+
+Sphere::Sphere(float radius, int n_sectors, int n_stacks) :
     radius(radius), n_sectors(n_sectors), n_stacks(n_stacks)
 {
     generate_vertices();

@@ -28,17 +28,15 @@ class MapChunk
         glm::vec2 chunk_origin;
 
     public:
-        MapChunk(const char* obj_data_filename, const char* vertex_shader_filename,
-               const char* fragment_shader_filename);
-        MapChunk(const char* obj_data_filename, const char* vertex_shader_filename,
-               const char* fragment_shader_filename, std::vector<uint32_t>* indexes,
+        MapChunk(const char* map_filename, const char* vertex_shader,
+               const char* fragment_shader, std::vector<uint32_t>* indexes,
                std::pair<int, int> latitude_range, std::pair<int, int> longitude_range, int offset);
 
     public:
         void Bind();
         void Unbind();
         void Draw();
-        void Draw(glm::mat4* model, glm::mat4* view, glm::mat4* projection, DRAWING_MODE drawing_mode, int lod);
+        void Draw(glm::mat4* model, glm::mat4* view, glm::mat4* projection, DRAWING_MODE drawing_mode, int lod, Shader_Mode shader_mode);
 
     private:
         bool replace(std::string& str, const std::string& from, const std::string& to);

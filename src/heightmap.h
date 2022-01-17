@@ -10,6 +10,9 @@ class Heightmap
         std::vector<MapChunk*> map_chunks;
         std::vector<std::vector<uint32_t>*> indexes_lists;
 
+        std::vector<const char*> vertex_shaders;
+        std::vector<const char*> fragment_shaders;
+
         std::pair<int, int> latitude_range;
         std::pair<int, int> longitude_range;
         int offset;
@@ -17,11 +20,11 @@ class Heightmap
         char *map_directory;
 
     public:
-        Heightmap(char* map_directory, std::pair<int, int> latitude_range,
-                  std::pair<int, int> longitude_range, int offset);
+        Heightmap();
+        Heightmap(char* map_directory, std::pair<int, int> latitude_range, std::pair<int, int> longitude_range, int offset);
 
     public:
-        void Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, int lod, int lod_change);
+        void Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, int lod, int lod_change, Shader_Mode shader_mode);
 
     private:
         void calculate_indexes(std::vector<uint> &indexes, uint step, int n_rows);

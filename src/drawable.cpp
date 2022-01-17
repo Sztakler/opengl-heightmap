@@ -1,7 +1,7 @@
 #include "drawable.h"
 
 Drawable::Drawable(const char* vertices_data_filename, const char* normals_data_filename,
-               const char* vertex_shader_filename, const char* fragment_shader_filename) 
+               const char* vertex_shader_filename, const char* fragment_shader_filename)
 {
 
     loadData(vertices_data_filename, this->vertices, 1.0);
@@ -37,7 +37,7 @@ Drawable::Drawable(const char* obj_data_filename, const char* vertex_shader_file
     this->normals_buffer = VBO(&this->normals, this->normals.size() * sizeof(float));
 
     this->shader = Shader(vertex_shader_filename, fragment_shader_filename);
-    
+
     this->vertices_array.link_vbo(this->vertices_buffer, 0, 3, GL_FLOAT);
     this->normals_array.link_vbo(this->normals_buffer, 1, 3, GL_FLOAT);
 
@@ -170,7 +170,7 @@ bool Drawable::loadFromObjectFile(const char* filename)
 
         std::stringstream s;
         s << line;
-        
+    
 
         char junk;
 

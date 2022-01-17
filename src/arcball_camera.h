@@ -5,7 +5,7 @@
 
 class ArcballCamera
 {
-    private:
+    public:
         glm::mat4x4 m_viewMatrix;
         glm::vec3 m_eye;            // Camera position in 3D space.
         glm::vec3 m_lookAt;         // Point that the camera is looking at.

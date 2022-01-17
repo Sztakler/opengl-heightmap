@@ -1,5 +1,7 @@
 #include "heightmap.h"
 
+Heightmap::Heightmap(){}
+
 Heightmap::Heightmap(char* map_directory, std::pair<int, int> latitude_range,
                   std::pair<int, int> longitude_range, int offset)
 {
@@ -79,7 +81,7 @@ void Heightmap::load_map_chunks()
 			  << "Used " << map_chunks.size() * ceil(1201.0 / offset) * ceil(1201.0 / offset) * 2 << " bytes [" << map_chunks.size() * ceil(1201.0 / offset) * ceil(1201.0 / offset) * 2 / 1000000 << " MB].\n";
 }
 
-void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, int lod, int lod_change)
+void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, int lod, int lod_change, Shader_Mode shader_mode)
 {
         for (MapChunk *map_chunk : map_chunks)
 		{
@@ -91,7 +93,7 @@ void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, i
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, map_chunk->indexes_buffer.id);
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, map_chunk->indexes->size() * sizeof(uint32_t), &map_chunk->indexes->front(), GL_STATIC_DRAW);
 			}
-			map_chunk->Draw(model, view, projection, TRIANGLES, lod);
+			map_chunk->Draw(model, view, projection, TRIANGLES, lod, shader_mode);
 			map_chunk->Unbind();
 		}
 }

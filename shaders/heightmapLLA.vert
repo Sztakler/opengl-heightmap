@@ -10,7 +10,6 @@ layout (location = 2) uniform mat4 projection;
 layout (location = 3) uniform vec2 origin;
 
 layout (location = 4) uniform int n_rows;
-layout (location = 5) uniform int mode;
 
 out vec3 positionECEF;
 out float scale;
@@ -51,18 +50,11 @@ void main()
 
     alt = altitude;
 
-    if (mode == 1)
-    {
-        float z = (radius + altitude) * cos(latitude) * cos(longitude); // 3D x
-        float x = (radius + altitude) * cos(latitude) * sin(longitude); // 3D y
-        float y = (radius + altitude) * sin(latitude);                  // 3D z
+    float z = (radius + altitude) * cos(latitude) * cos(longitude); // 3D x
+    float x = (radius + altitude) * cos(latitude) * sin(longitude); // 3D y
+    float y = (radius + altitude) * sin(latitude);                  // 3D z
 
-        positionECEF = vec3(x, y, z);
+    positionECEF = vec3(x, y, z);
 
-        gl_Position = projection * view * vec4(positionECEF, 1.0);
-    }
-    else
-    {
-        gl_Position = projection * view * vec4 (latitude, altitude, longitude, 1.0);
-    }
+    gl_Position = projection * view * vec4(positionECEF, 1.0);
 }

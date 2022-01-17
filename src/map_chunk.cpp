@@ -1,8 +1,8 @@
 #include "map_chunk.h"
 
-MapChunk::MapChunk(const char *map_filename, const char *vertex_shader_filename,
-                     const char *fragment_shader_filename, std::vector<uint32_t>* indexes,
-                     std::pair<int, int> latitude_range, std::pair<int, int> longitude_range, int offset)
+MapChunk::MapChunk(const char* map_filename, const char* vertex_shader,
+               const char* fragment_shader, std::vector<uint32_t>* indexes,
+               std::pair<int, int> latitude_range, std::pair<int, int> longitude_range, int offset)
 {
     this->offset = offset;
     loadHGTMap(map_filename, this->heights, this->chunk_origin, latitude_range, longitude_range);
@@ -14,7 +14,7 @@ MapChunk::MapChunk(const char *map_filename, const char *vertex_shader_filename,
 
     this->indexes_buffer = EBO(this->indexes, this->indexes->size() * sizeof(uint32_t));
 
-    this->shader = Shader(vertex_shader_filename, fragment_shader_filename);
+    this->shader = Shader(vertex_shader, fragment_shader);
 
     this->heights_array.link_vbo(this->heights_buffer, 0, 1, GL_SHORT);
 }
@@ -39,7 +39,7 @@ void MapChunk::Draw()
     glDrawArrays(GL_TRIANGLE_FAN, 0, heights.size());
 }
 
-void MapChunk::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, DRAWING_MODE drawing_mode, int lod)
+void MapChunk::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, DRAWING_MODE drawing_mode, int lod, Shader_Mode shader_mode)
 {
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->indexes_buffer.id);
     // glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indexes[3]->size(), this->indexes[3], GL_STATIC_DRAW);
@@ -50,6 +50,7 @@ void MapChunk::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, DR
     glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(*projection));
     glUniform2f(3, chunk_origin.x, chunk_origin.y);
     glUniform1i(4, (int)ceil(1201.0 / offset));
+    glUniform1i(5, shader_mode);
     // printf("lod = %d, size = %d\n", lod, indexes[lod]->size());
     switch (drawing_mode)
     {

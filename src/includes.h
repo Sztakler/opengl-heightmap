@@ -108,10 +108,10 @@ enum DRAWING_MODE
 	WIREFRAME
 };
 
-enum CAMERA
+enum Camera_Mode
 {
-    PLAYER_CAMERA,
-    STATIC_CAMERA
+    ARCBALL,
+    FREE
 };
 
 
@@ -123,6 +123,12 @@ enum Camera_Movement
     RIGHT,
     UP,
     DOWN
+};
+
+enum Shader_Mode
+{
+    LLA,
+    ECEF
 };
 
 const float YAW         = 0.0f;
