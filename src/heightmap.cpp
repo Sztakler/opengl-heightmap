@@ -89,51 +89,16 @@ bool Heightmap::loadHGTMap(const char* map_filename, std::vector<int16_t> &heigh
     int latitude = atoi(fname.substr(1, 2).c_str());
     int longitude = atoi(fname.substr(4, 3).c_str());
 
-
     if (!fname.substr(0, 1).compare("S"))
         latitude = -latitude;
 
     if (!fname.substr(3, 1).compare("W"))
         longitude = -longitude;
 
-    // std::cout << fname.substr(1, 2).c_str() << " " << fname.substr(4, 3).c_str();
-    // printf(" chunk %d %d    -lat %d %d -lon %d %d\n", latitude, longitude, latitude_range.first, latitude_range.second, longitude_range.first, longitude_range.second);
-
-    /* If user defined latitude range then discard data out of this range. */
-
-    // printf("sig lat=%d lat0=%d lat1=%d lon=%d lon0=%d lon1=%d\n", latitude, latitude_range.first, latitude_range.second, longitude, longitude_range.first, longitude_range.second);
-    // printf("abs lat=%d lat0=%d lat1=%d lon=%d lon0=%d lon1=%d\n", abs(latitude), abs(latitude_range.first), abs(latitude_range.second), abs(longitude), abs(longitude_range.first), abs(longitude_range.second));
-
-    // if (abs(latitude_range.first) <= abs(latitude_range.second))
-    // {
-    //     if ( (abs(latitude) < abs(latitude_range.first)) || (abs(latitude) > abs(latitude_range.second)) )
-    //     {
-    //         // printf("alat=%d alat0=%d alat1=%d alon=%d alon0=%d alon1=%d\n", abs(latitude), abs(latitude_range.first), abs(latitude_range.second), abs(longitude), abs(longitude_range.first), abs(longitude_range.second));
-    //         // printf("[alat=%d < alat0=%d] %d  [alat=%d > alat1=%d] %d ==> OR = %d\n", abs(latitude), abs(latitude_range.first), abs(latitude) < abs(latitude_range.first), abs(latitude), abs(latitude_range.second), abs(latitude) > abs(latitude_range.second), (abs(latitude) < abs(latitude_range.first)) || (abs(latitude) > abs(latitude_range.second)) );
-    //         // printf("\033[91mWRONG\033[0m\n");
-    //         return false;
-    //     }
-    // }
-
-    // /* If user defined longitude range then discard data out of this range. */
-    // if (abs(longitude_range.first) <= abs(longitude_range.second))
-    // {
-    //     if ( (abs(longitude) < abs(longitude_range.first)) || (abs(longitude) > abs(longitude_range.second)) )
-    //     {
-    //         // printf("along=%d along0=%d along1=%d alon=%d alon0=%d alon1=%d\n", abs(longitude), abs(longitude_range.first), abs(longitude_range.second), abs(longitude), abs(longitude_range.first), abs(longitude_range.second));
-    //         // printf("[along=%d < along0=%d] %d  [along=%d > along1=%d] %d ==> OR = %d\n", abs(longitude), abs(longitude_range.first), abs(longitude) < abs(longitude_range.first), abs(longitude), abs(longitude_range.second), abs(longitude) > abs(longitude_range.second), (abs(longitude) < abs(longitude_range.first)) || (abs(longitude) < abs(longitude_range.second)));
-    //         // printf("\033[91mWRONG\033[0m\n");
-    //         return false;
-    //     }
-    // }
-
-    /* If range isn't specified or data is withing this range, then load data normally. */
 
     chunk_origin = glm::vec2((float)(latitude+1), (float)longitude); // add 1, because latitude from filename is actually lower left corner of square
 
     map_loader::load_heightmap(heights, const_cast<char*>(map_filename), this->offset);
-
-    // printf("\033[92mLoaded %ld/%ld points to heights [%ld bytes].\n\033[0m", heights.size(), 1201*1201*3, heights.size() * sizeof(int16_t));
 
     return true;
 }

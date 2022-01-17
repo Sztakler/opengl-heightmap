@@ -168,6 +168,36 @@ namespace map_loader
                 std::string path(directory_name);
                 path.append("/");
                 path.append(entry->d_name);
+
+                std::string fname(filename);
+                int latitude = atoi(fname.substr(1, 2).c_str());
+                int longitude = atoi(fname.substr(4, 3).c_str());
+
+                if (!fname.substr(0, 1).compare("S"))
+                    latitude = -latitude;
+                if (!fname.substr(3, 1).compare("W"))
+                    longitude = -longitude;
+
+                // printf(" chunk %d %d    -lat %d %d -lon %d %d\n", latitude, longitude, latitude_range.first, latitude_range.second, longitude_range.first, longitude_range.second);
+
+                /* If user defined latitude range then discard data out of this range. */
+                if (latitude_range.first <= latitude_range.second)
+                {
+                    if ( latitude < latitude_range.first || latitude > latitude_range.second)
+                    {
+                        continue;
+                    }
+                }
+
+                /* If user defined longitude range then discard data out of this range. */
+                if (longitude_range.first <= longitude_range.second)
+                {
+                    if ( longitude < longitude_range.first || longitude > longitude_range.second )
+                    {
+                        continue;
+                    }
+                }
+
                 files_list.push_back(path);
             }
         }
