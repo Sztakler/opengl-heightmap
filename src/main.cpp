@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 
 	Heightmap heightmap(map_directory, latitude_range, longitude_range, offset);
 	Sphere globe(10.0f, 50, 50);
-	Drawable map("data/plane.obj", "shaders/globe.vert", "shaders/globe.frag");
+	Drawable map("data/plane.obj", "shaders/plane.vert", "shaders/plane.frag");
 
 	globe.position = glm::vec3(0.0, 0.0, 0.0);
 

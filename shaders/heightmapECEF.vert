@@ -63,6 +63,6 @@ void main()
     }
     else
     {
-        gl_Position = projection * view * vec4 (pos, 1.0);
+        gl_Position = projection * view * vec4 (pos.x, pos.y, pos.z * cos(radians(pos.x)), 1.0);
     }
 }

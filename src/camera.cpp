@@ -37,38 +37,48 @@ glm::mat4 Camera::getViewMatrix()
 void Camera::processKeyboard(Camera_Movement direction, float delta_time)
 {
     float velocity = movement_speed * delta_time * position.y / 6;
+    glm::vec3 new_position;
 
     previous_moves.clear();
 
+    printf("pos %f %f %f\n", position.x, position.y, position.z);
+
     if (direction == FORWARD)
     {
-        position += up * velocity;
-        previous_moves.push_back(FORWARD);
+        new_position = position + up * velocity;
+        if (new_position.x < 90)
+            position = new_position;
     }
     if (direction == BACKWARD)
     {
-        position -= up * velocity;
-        previous_moves.push_back(BACKWARD);
+        new_position = position - up * velocity;
+        if (new_position.x > -90)
+            position = new_position;
     }
     if (direction == LEFT)
     {
-        position -= right * velocity;
-        previous_moves.push_back(LEFT);
+        new_position = position - right * velocity;
+        if (new_position.z > -180)
+            position = new_position;
     }
     if (direction == RIGHT)
     {
-        position += right * velocity;
-        previous_moves.push_back(RIGHT);
+        new_position = position + right * velocity;
+;
+        if (new_position.z < 180)
+            position = new_position;
     }
     if (direction == UP)
     {
-        position -= front * velocity;
-        previous_moves.push_back(UP);
+        new_position = position - front * velocity;
+        if (new_position.y < 450)
+            position = new_position;
     }
     if (direction == DOWN)
     {
-        position += front * velocity;
-        previous_moves.push_back(DOWN);
+        new_position = position + front * velocity;
+        if (new_position.y > 0)
+            position = new_position;
     }
 }
 
