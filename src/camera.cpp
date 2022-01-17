@@ -1,7 +1,7 @@
 #include "camera.h"
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) :
-    front(glm::vec3(0, 0, 0)),
+    front(glm::vec3(0, -1, 0)),
     movement_speed(SPEED),
     mouse_sensitivity(SENSITIVITY),
     zoom(ZOOM)
@@ -36,18 +36,18 @@ glm::mat4 Camera::getViewMatrix()
 
 void Camera::processKeyboard(Camera_Movement direction, float delta_time)
 {
-    float velocity = movement_speed * delta_time;
+    float velocity = movement_speed * delta_time * position.y / 6;
 
     previous_moves.clear();
 
     if (direction == FORWARD)
     {
-        position += front * velocity;
+        position += up * velocity;
         previous_moves.push_back(FORWARD);
     }
     if (direction == BACKWARD)
     {
-        position -= front * velocity;
+        position -= up * velocity;
         previous_moves.push_back(BACKWARD);
     }
     if (direction == LEFT)
@@ -62,12 +62,12 @@ void Camera::processKeyboard(Camera_Movement direction, float delta_time)
     }
     if (direction == UP)
     {
-        position += up * velocity;
+        position -= front * velocity;
         previous_moves.push_back(UP);
     }
     if (direction == DOWN)
     {
-        position -= up * velocity;
+        position += front * velocity;
         previous_moves.push_back(DOWN);
     }
 }
@@ -102,11 +102,11 @@ void Camera::processMouseScroll(float y_offset)
 
 void Camera::updateCameraVectors()
 {
-    glm::vec3 front_vector;
-    front_vector.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front_vector.y = sin(glm::radians(pitch));
-    front_vector.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front = glm::normalize(front_vector);
+    // glm::vec3 front_vector;
+    // front_vector.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    // front_vector.y = sin(glm::radians(pitch));
+    // front_vector.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    // front = glm::normalize(front_vector);
 
 
     // also re-calculate the Right and Up vector

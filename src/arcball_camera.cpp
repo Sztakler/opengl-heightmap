@@ -109,13 +109,13 @@ void ArcballCamera::processKeyboard(Camera_Movement direction, float delta_time)
 {
     float height = glm::length(m_eye - m_lookAt);
     int speed_index = floor((height - 10) * 10); // Maps height (ranging from 10 to 50) to indexes from 0 to 100.
-    std::cout << height << " " << (height - 10) * 10 << " " << speed_index << " " << movement_speed_table[speed_index] << " " << movement_speed_table.size()<< "\n";
+    // std::cout << height << " " << (height - 10) * 10 << " " << speed_index << " " << movement_speed_table[speed_index] << " " << movement_speed_table.size()<< "\n";
 
     this->movement_speed = movement_speed_table[speed_index];
 
     float velocity = this->movement_speed * delta_time;
 
-    printf("Camera height: %f\nCamera velocity: %f\n\n", height, velocity);
+    // printf("Camera height: %f\nCamera velocity: %f\n\n", height, velocity);
 
     glm::vec3 new_m_eye;
     float new_height;

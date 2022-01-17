@@ -40,8 +40,8 @@ int lod = 0;
 int lod_change = 0;
 int lod_auto = 1;
 
-ArcballCamera arcball_camera(glm::vec3(3.0, 12.0, 8.0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 90.0f, 0.0f);
-Camera free_camera(glm::vec3(45.0, 0.0, 20.0));
+ArcballCamera arcball_camera(glm::vec3(3.0, 12.0, 8.0), glm::vec3(0, 0, 0), glm::vec3(0.0, 1.0, 0.0), 90.0f, 0.0f);
+Camera free_camera(glm::vec3(45.0, 20.0, 10.0), glm::vec3(1.0, 0.0, 0.0));
 
 void windowResizeHandler(GLFWwindow *window, int width, int height);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -133,8 +133,8 @@ int main(int argc, char *argv[])
 
 
 	Heightmap heightmap(map_directory, latitude_range, longitude_range, offset);
-
 	Sphere globe(10.0f, 50, 50);
+	Drawable map("data/plane.obj", "shaders/globe.vert", "shaders/globe.frag");
 
 	globe.position = glm::vec3(0.0, 0.0, 0.0);
 
@@ -198,23 +198,43 @@ int main(int argc, char *argv[])
 		if (camera_mode == FREE)
 		{
 			view = free_camera.getViewMatrix();
-			projection = glm::perspective(glm::radians(free_camera.zoom), (float)(SCR_WIDTH) / (float)SCR_HEIGHT, 0.01f, 100.0f);
+			projection = glm::perspective(glm::radians(free_camera.zoom), (float)(SCR_WIDTH) / (float)SCR_HEIGHT, 0.01f, 500.0f);
 		}
 		else
 		{
 			view = arcball_camera.getViewMatrix();
-			projection = glm::perspective(glm::radians(arcball_camera.zoom), (float)(SCR_WIDTH) / (float)SCR_HEIGHT, 0.01f, 100.0f);
+			projection = glm::perspective(glm::radians(arcball_camera.zoom), (float)(SCR_WIDTH) / (float)SCR_HEIGHT, 0.01f, 500.0f);
 		}
+
+		// printf("eye:   %f %f %f\n\
+		// 		front: %f %f %f\n\
+		// 		up:    %f %f %f\n\
+		// 		right: %f %f %f\n\n",
+		// 		free_camera.position.x, free_camera.position.y, free_camera.position.z,
+		// 		free_camera.front.x, free_camera.front.y, free_camera.front.z,
+		// 		free_camera.up.x, free_camera.up.y, free_camera.up.z,
+		// 		free_camera.right.x, free_camera.right.y, free_camera.right.z);
 
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
 		heightmap.Draw(&model, &view, &projection, lod, lod_change, shader_mode);
 		lod_change = 0;
 
-		globe.shader.Activate();
-		globe.Bind();
-		globe.Draw(&model, &view, &projection, TRIANGLES);
-		globe.Unbind();
+		if (shader_mode == ECEF)
+		{
+			globe.shader.Activate();
+			globe.Bind();
+			globe.Draw(&model, &view, &projection, TRIANGLES);
+			globe.Unbind();
+		}
+
+		if (shader_mode == LLA)
+		{
+			map.shader.Activate();
+			map.Bind();
+			map.Draw(&model, &view, &projection, TRIANGLES, false, free_camera.position);
+			map.Unbind();
+		}
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
