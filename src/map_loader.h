@@ -9,10 +9,11 @@
 
 namespace map_loader {
     /* Populates 'heights' vector with heights (in meters above sea level) from .hgt file 'filename'.
-    * 'filename' parameter is either relative or absolute path to .hgt file.
+    *
+    * filename -- parameter is either relative or absolute path to .hgt file.
+    * offset -- specifies number of points to omit, while loading data (useful for large maps).
     */
-    // void load_heightmap(std::vector<uint16_t> &heights, std::vector<coordinate_t> &coordinates, char* filename);
-    void load_heightmap(std::vector<int16_t> &vertices, char* filename, int offset);
+    void load_data_from_file(std::vector<int16_t> &heights, char* filename, int offset);
 
     /* Populates 'directories_list' vector with paths to directories inside 'directory_name'. */
     void get_subdirectories_list(std::vector<std::string> &directories_list, char* directory_name);

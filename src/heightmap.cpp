@@ -1,133 +1,97 @@
 #include "heightmap.h"
 
-Heightmap::Heightmap(const char *map_filename, const char *vertex_shader_filename,
-                     const char *fragment_shader_filename, std::vector<uint32_t>* indexes,
-                     std::pair<int, int> latitude_range, std::pair<int, int> longitude_range, int offset)
+Heightmap::Heightmap(char* map_directory, std::pair<int, int> latitude_range,
+                  std::pair<int, int> longitude_range, int offset)
 {
+    this->map_directory = map_directory;
+    this->latitude_range = latitude_range;
+    this->longitude_range = longitude_range;
     this->offset = offset;
-    loadHGTMap(map_filename, this->heights, this->chunk_origin, latitude_range, longitude_range);
-    this->indexes = indexes;
 
-    this->heights_array = VAO();
-    this->heights_array.Bind();
-    this->heights_buffer = VBO(&this->heights, this->heights.size() * sizeof(int16_t));
-
-    this->indexes_buffer = EBO(this->indexes, this->indexes->size() * sizeof(uint32_t));
-
-    this->shader = Shader(vertex_shader_filename, fragment_shader_filename);
-
-    this->heights_array.link_vbo(this->heights_buffer, 0, 1, GL_SHORT);
+    populate_indexes_list();
+    load_map_chunks();
 }
 
-
-void Heightmap::Bind()
+void Heightmap::calculate_indexes(std::vector<uint> &indexes, uint step, int n_rows)
 {
-    this->heights_array.Bind();
-    this->heights_buffer.Bind();
-    this->indexes_buffer.Bind();
+	for (uint i = 0; i < n_rows - step; i += step)
+	{
+		for (uint j = 0; j < n_rows - step; j += step)
+		{
+			indexes.push_back(i * n_rows + j);
+			indexes.push_back((i + step) * n_rows + j + step);
+			indexes.push_back(i * n_rows + j + step);
+
+			indexes.push_back(i * n_rows + j);
+			indexes.push_back((i + step) * n_rows + j + step);
+			indexes.push_back((i + step) * n_rows + j);
+		}
+	}
 }
 
-void Heightmap::Unbind()
+void Heightmap::populate_indexes_list()
 {
-    this->heights_array.Unbind();
-    this->heights_buffer.Unbind();
-    this->indexes_buffer.Unbind();
+    for (uint32_t i = 0; i < 8; i++)
+	{
+		std::vector<uint32_t> *indexes = new std::vector<uint32_t>;
+		indexes_lists.push_back(indexes);
+
+		calculate_indexes(*indexes_lists[i], i+1, (int)ceil(1201.0 / offset));
+		printf("[%d] %d %d\n", i, indexes_lists[i]->size(), i+1);
+	}
 }
 
-void Heightmap::Draw()
+void Heightmap::load_map_chunks()
 {
-    glDrawArrays(GL_TRIANGLE_FAN, 0, heights.size());
+    std::vector<std::string> subdirectories_list;
+    map_loader::get_subdirectories_list(subdirectories_list, map_directory);
+
+    if (subdirectories_list.size() == 0)
+	{
+		subdirectories_list.push_back(map_directory);
+	}
+
+    double load_start = glfwGetTime();
+	int directory_index = 0;
+
+	for (std::string subdirectory_name : subdirectories_list)
+	{
+		std::vector<std::string> mapfiles_list;
+		map_loader::get_files_list_by_extension(mapfiles_list, const_cast<char *>(subdirectory_name.c_str()), "hgt", latitude_range, longitude_range);
+
+		for (std::string mapfilename : mapfiles_list)
+		{
+			// std::cout << "\nCreating renderer for " << mapfilename << "\n";
+			MapChunk *map_chunk = new MapChunk(mapfilename.c_str(), "shaders/heightmapECEF.vert", "shaders/heightmapECEF.frag", indexes_lists[5],
+											latitude_range, longitude_range, offset);
+			map_chunks.push_back(map_chunk);
+		}
+
+		directory_index++;
+
+		std::cout << "Loaded data from " << subdirectory_name << " [" << directory_index << "/" << subdirectories_list.size() << "].\n";
+	}
+
+	double load_end = glfwGetTime();
+	double load_time = load_end - load_start;
+
+	std::cout << "Loaded " << map_chunks.size() << " chunks in " << load_time << "s [" << load_time / map_chunks.size() << "s per chunk]\n"
+			  << "Used " << map_chunks.size() * ceil(1201.0 / offset) * ceil(1201.0 / offset) * 2 << " bytes [" << map_chunks.size() * ceil(1201.0 / offset) * ceil(1201.0 / offset) * 2 / 1000000 << " MB].\n";
 }
 
-void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, DRAWING_MODE drawing_mode, int lod)
+void Heightmap::Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, int lod, int lod_change)
 {
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->indexes_buffer.id);
-    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indexes[3]->size(), this->indexes[3], GL_STATIC_DRAW);
-
-
-    glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(*model));
-    glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(*view));
-    glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(*projection));
-    glUniform2f(3, chunk_origin.x, chunk_origin.y);
-    glUniform1i(4, (int)ceil(1201.0 / offset));
-    // printf("lod = %d, size = %d\n", lod, indexes[lod]->size());
-    switch (drawing_mode)
-    {
-    case TRIANGLES:
-            // printf("DRAW TRIANGLES %d indexes\n", indexes->size());
-            glDrawElements(GL_TRIANGLES, indexes->size(), GL_UNSIGNED_INT, 0);
-        break;
-
-    case WIREFRAME:
-        glDrawElements(GL_LINES, indexes->size(), GL_UNSIGNED_INT, 0);
-        break;
-    default:
-        glDrawElements(GL_TRIANGLES, indexes->size(), GL_UNSIGNED_INT, 0);
-    }
-}
-
-bool Heightmap::loadHGTMap(const char* map_filename, std::vector<int16_t> &heights, glm::vec2 &chunk_origin,
-                           std::pair<int, int> latitude_range, std::pair<int, int> longitude_range)
-{
-    char filename_copy[50];
-    // std::cout << "Map " << map_filename << "\n";
-    strcpy(filename_copy, map_filename);
-    const char delim[2] = "/";
-
-    char *token;
-    std::vector<char *> tokens;
-    token = strtok(filename_copy, delim);
-
-    while (token != NULL)
-    {
-        tokens.push_back(token);
-        token = strtok(NULL, delim);
-    }
-
-    std::string fname(tokens.back());
-
-    int latitude = atoi(fname.substr(1, 2).c_str());
-    int longitude = atoi(fname.substr(4, 3).c_str());
-
-    if (!fname.substr(0, 1).compare("S"))
-        latitude = -latitude;
-
-    if (!fname.substr(3, 1).compare("W"))
-        longitude = -longitude;
-
-
-    chunk_origin = glm::vec2((float)(latitude+1), (float)longitude); // add 1, because latitude from filename is actually lower left corner of square
-
-    map_loader::load_heightmap(heights, const_cast<char*>(map_filename), this->offset);
-
-    return true;
-}
-
-bool Heightmap::replace(std::string &str, const std::string &from, const std::string &to)
-{
-    size_t start_pos = str.find(from);
-    if (start_pos == std::string::npos)
-        return false;
-    str.replace(start_pos, from.length(), to);
-    return true;
-}
-
-void Heightmap::calculate_indexes(std::vector<uint> &indexes)
-{
-    int n_rows = 1201;
-    int step = 10;
-
-    for (uint i = 0; i < n_rows - step; i += step)
-    {
-        for (uint j = 0; j < n_rows - step; j += step)
-        {
-            indexes.push_back(i * n_rows + j);
-            indexes.push_back((i + step) * n_rows + j + step);
-            indexes.push_back(i * n_rows + j + step);
-
-            indexes.push_back(i * n_rows + j);
-            indexes.push_back((i + step) * n_rows + j + step);
-            indexes.push_back((i + step) * n_rows + j);
-        }
-    }
+        for (MapChunk *map_chunk : map_chunks)
+		{
+			map_chunk->shader.Activate();
+			map_chunk->Bind();
+			if (lod_change)
+			{
+				map_chunk->indexes = indexes_lists[lod];
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, map_chunk->indexes_buffer.id);
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, map_chunk->indexes->size() * sizeof(uint32_t), &map_chunk->indexes->front(), GL_STATIC_DRAW);
+			}
+			map_chunk->Draw(model, view, projection, TRIANGLES, lod);
+			map_chunk->Unbind();
+		}
 }

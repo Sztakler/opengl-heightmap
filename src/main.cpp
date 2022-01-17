@@ -11,6 +11,7 @@
 #include "camera.h"
 #include "arcball_camera.h"
 #include "heightmap.h"
+#include "map_chunk.h"
 #include "drawable.h"
 #include "sphere.h"
 
@@ -335,62 +336,13 @@ int main(int argc, char *argv[])
 	// Accept fragment if it closer to the player_camera than the former one
 	glDepthFunc(GL_LESS);
 	// glEnable(GL_CULL_FACE);
-	// glCullFace(GL_FRONT);
+	// glCullFace(GL_BACK);
 	// glFrontFace(GL_CCW);
 
-	std::vector<std::vector<uint32_t> *> indexes_lists;
-	// calculate_indexes(indexes);
-	for (uint32_t i = 0; i < 8; i++)
-	{
-		std::vector<uint32_t> *indexes = new std::vector<uint32_t>;
-		indexes_lists.push_back(indexes);
+	Heightmap heightmap(map_directory, latitude_range, longitude_range, offset);
 
-		calculate_indexes(*indexes_lists[i], i+1, (int)ceil(1201.0 / offset));
-		printf("[%d] %d %d\n", i, indexes_lists[i]->size(), i+1);
-	}
-
-	std::vector<Heightmap *> heightmaps;
-	std::vector<std::string> subdirectories_list;
-
-	map_loader::get_subdirectories_list(subdirectories_list, map_directory);
-
-	if (subdirectories_list.size() == 0)
-	{
-		subdirectories_list.push_back(map_directory);
-	}
-
-	double load_start = glfwGetTime();
-	int directory_index = 0;
-
-	for (std::string subdirectory_name : subdirectories_list)
-	{
-		std::vector<std::string> mapfiles_list;
-		map_loader::get_files_list_by_extension(mapfiles_list, const_cast<char *>(subdirectory_name.c_str()), "hgt", latitude_range, longitude_range);
-
-		for (std::string mapfilename : mapfiles_list)
-		{
-			// std::cout << "\nCreating renderer for " << mapfilename << "\n";
-			Heightmap *hmap = new Heightmap(mapfilename.c_str(), "shaders/heightmapECEF.vert", "shaders/heightmapECEF.frag", indexes_lists[5],
-											latitude_range, longitude_range, offset);
-			heightmaps.push_back(hmap);
-		}
-
-		directory_index++;
-
-		std::cout << "Loaded data from " << subdirectory_name << " [" << directory_index << "/" << subdirectories_list.size() << "].\n";
-	}
-
-	double load_end = glfwGetTime();
-	double load_time = load_end - load_start;
-
-	std::cout << "Loaded " << heightmaps.size() << " chunks in " << load_time << "s [" << load_time / heightmaps.size() << "s per chunk]\n"
-			  << "Used " << heightmaps.size() * ceil(1201.0 / offset) * ceil(1201.0 / offset) * 2 << " bytes [" << heightmaps.size() * ceil(1201.0 / offset) * ceil(1201.0 / offset) * 2 / 1000000 << " MB].\n";
-
-	// Drawable sphere("data/sphere.obj", "shaders/globe.vert", "shaders/globe.frag");
 	Sphere globe(10.0f, 50, 50);
 
-	// sphere.position = player_camera.position;
-	// sphere.position = arc_camera.position;
 	globe.position = glm::vec3(0.0, 0.0, 0.0);
 
 	glm::mat4 model = glm::mat4(1.0f);
@@ -452,39 +404,13 @@ int main(int argc, char *argv[])
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.07f, 0.07f, 0.07f, 1.0f);
 
-		// view = player_camera.getViewMatrix();
 		view = arcball_camera.getViewMatrix();
-		// projection = glm::perspective(glm::radians(player_camera.zoom), (float)(SCR_WIDTH) / (float)SCR_HEIGHT, 0.01f, 100.0f);
 		projection = glm::perspective(glm::radians(player_camera.zoom), (float)(SCR_WIDTH) / (float)SCR_HEIGHT, 0.01f, 100.0f);
 
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
-		// printf("CAMERA\nposition %f %f %f\nfront %f %f %f\nup %f %f %f\nright %f %f %f\nworld_up %f %f %f\n\n",
-        // arc_camera.position.x, arc_camera.position.y, arc_camera.position.z,
-        // arc_camera.front.x, arc_camera.front.y, arc_camera.front.z,
-        // arc_camera.up.x, arc_camera.up.y, arc_camera.up.z,
-        // arc_camera.right.x, arc_camera.right.y, arc_camera.right.z,
-        // arc_camera.world_up.x, arc_camera.world_up.y, arc_camera.world_up.z);
-
-		for (Heightmap *heightmap : heightmaps)
-		{
-			heightmap->shader.Activate();
-			heightmap->Bind();
-			if (lod_change)
-			{
-				heightmap->indexes = indexes_lists[lod];
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, heightmap->indexes_buffer.id);
-				glBufferData(GL_ELEMENT_ARRAY_BUFFER, heightmap->indexes->size() * sizeof(uint32_t), &heightmap->indexes->front(), GL_STATIC_DRAW);
-			}
-			heightmap->Draw(&model, &view, &projection, TRIANGLES, lod);
-			heightmap->Unbind();
-		}
+		heightmap.Draw(&model, &view, &projection, lod, lod_change);
 		lod_change = 0;
-
-		// sphere.shader.Activate();
-		// sphere.Bind();
-		// sphere.Draw(&model, &view, &projection, TRIANGLES, false, player_camera.position);
-		// sphere.Unbind();
 
 		globe.shader.Activate();
 		globe.Bind();

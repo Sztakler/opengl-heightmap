@@ -11,7 +11,7 @@
 
 namespace map_loader
 {
-    void load_heightmap(std::vector<int16_t> &vertices, char *filename, int offset)
+    void load_data_from_file(std::vector<int16_t> &vertices, char *filename, int offset)
     {
         std::string line;
         std::string word;
@@ -169,6 +169,8 @@ namespace map_loader
                 path.append("/");
                 path.append(entry->d_name);
 
+
+                /* Check, whether data comes from user defined range of coordinates. */
                 std::string fname(filename);
                 int latitude = atoi(fname.substr(1, 2).c_str());
                 int longitude = atoi(fname.substr(4, 3).c_str());

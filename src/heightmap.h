@@ -2,52 +2,31 @@
 #define HEIGHTMAP_H
 
 #include "includes.h"
-#include "vao.h"
-#include "vbo.h"
-#include "ebo.h"
-#include "shader.h"
-#include "map_loader.h"
-#include <iomanip>
+#include "map_chunk.h"
 
 class Heightmap
 {
     public:
-        VAO heights_array;
+        std::vector<MapChunk*> map_chunks;
+        std::vector<std::vector<uint32_t>*> indexes_lists;
 
-        VBO heights_buffer;
-
-        EBO indexes_buffer;
-
-        Shader shader;
-
-        std::vector<int16_t> heights;
-        std::vector<uint32_t>* indexes;
-
-        float map_scale = 0.0001;
+        std::pair<int, int> latitude_range;
+        std::pair<int, int> longitude_range;
         int offset;
-        glm::vec2 chunk_origin;
+
+        char *map_directory;
 
     public:
-        Heightmap(const char* obj_data_filename, const char* vertex_shader_filename,
-               const char* fragment_shader_filename);
-        Heightmap(const char* obj_data_filename, const char* vertex_shader_filename,
-               const char* fragment_shader_filename, std::vector<uint32_t>* indexes,
-               std::pair<int, int> latitude_range, std::pair<int, int> longitude_range, int offset);
+        Heightmap(char* map_directory, std::pair<int, int> latitude_range,
+                  std::pair<int, int> longitude_range, int offset);
 
     public:
-        void Bind();
-        void Unbind();
-        void Draw();
-        void Draw(glm::mat4* model, glm::mat4* view, glm::mat4* projection, DRAWING_MODE drawing_mode, int lod);
+        void Draw(glm::mat4 *model, glm::mat4 *view, glm::mat4 *projection, int lod, int lod_change);
 
     private:
-        bool replace(std::string& str, const std::string& from, const std::string& to);
-        void loadData(const char* filename, std::vector<float> &data, float scale);
-        bool loadFromObjectFile(const char* filename);
-        bool loadHGTMap(const char* filename, std::vector<uint16_t> &heights, std::vector<coordinate_t> &coordinates);
-        bool loadHGTMap(const char* map_filename, std::vector<int16_t> &heights, glm::vec2 &chunk_origin,
-                        std::pair<int, int> latitude_range, std::pair<int, int> longitude_range);
-        void calculate_indexes(std::vector<uint> &indexes);
+        void calculate_indexes(std::vector<uint> &indexes, uint step, int n_rows);
+        void populate_indexes_list();
+        void load_map_chunks();
 };
 
-#endif
+#endif // !HEIGHTMAP_H
