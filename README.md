@@ -2,6 +2,9 @@
 
 Program, służący do wyświetlania powierzchni Ziemi w trybie 2D (mapa) i 3D (globus) z użyciem plików .hgt.
 
+![image](https://github.com/Sztakler/opengl-heightmap/assets/58264262/62d3ad2c-f0ed-404f-b628-9d285477e221)
+
+
 ## Użycie
 
 Do skompilowania programu wystarczy użyć `make`
